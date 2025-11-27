@@ -1,0 +1,158 @@
+---
+title: MCP Features
+pcx_content_type: concept
+description: Learn about the capabilities and features of the Model Context Protocol
+tags:
+  - MCP
+sidebar:
+  order: 1
+---
+
+The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction) is a standardized protocol for communication between AI clients and servers. It enables extensible tool, resource, and prompt capabilities through a client-server architecture.
+
+## Architecture Overview
+
+### Client-Server Model
+
+MCP uses a **client-server architecture** where:
+
+- **MCP Servers** expose capabilities (tools, resources, prompts) that can be invoked by clients
+- **MCP Clients** connect to one or more servers and consume their capabilities
+- Communication happens over **JSONRPC 2.0** protocol
+- Servers can be **stateful** (maintaining session state) or **stateless** (no session persistence)
+
+The protocol supports **bidirectional communication**: servers can expose tools for clients to call, and servers can request input from clients during execution (via elicitation).
+
+### Protocol Communication
+
+All MCP communication uses JSONRPC 2.0 messages:
+
+```json
+// Request format
+{
+  "jsonrpc": "2.0",
+  "id": "request-id",
+  "method": "tools/list",
+  "params": { /* method-specific parameters */ }
+}
+
+// Response format
+{
+  "jsonrpc": "2.0",
+  "id": "request-id",
+  "result": { /* response data */ }
+}
+```
+
+**Protocol version negotiation** occurs during the initialization handshake via the `MCP-Protocol-Version` header.
+
+For detailed protocol specifications, see the [MCP Specification](https://modelcontextprotocol.io/specification).
+
+## Server Features
+
+### Tools
+
+**Tools** are functions that MCP servers expose for clients to invoke. They represent actions that can be performed, such as querying a database, calling an API, or processing data.
+
+Learn more:
+- [Tools Guide](/agents/model-context-protocol/tools/)
+- [MCP Tools Specification](https://modelcontextprotocol.io/specification/draft/server/tools)
+
+### Resources
+
+**Resources** represent data or content that servers expose to clients. Unlike tools (which perform actions), resources provide read-only access to information.
+
+Examples include:
+- File contents
+- Database records
+- API responses
+- Configuration data
+
+Resources can be **static** (fixed URIs) or use **templates** (parameterized URIs like `file://{path}`).
+
+Learn more:
+- [MCP Resources Specification](https://modelcontextprotocol.io/specification/draft/server/resources)
+
+### Prompts
+
+**Prompts** are pre-defined prompt templates that servers can expose to clients. They help standardize common AI interactions and can include variables for customization.
+
+```typescript
+// Example prompt
+{
+  name: "code-review",
+  description: "Review code for quality and security",
+  arguments: [
+    { name: "code", description: "Code to review", required: true }
+  ]
+}
+```
+
+Learn more:
+- [MCP Prompts Specification](https://modelcontextprotocol.io/specification/draft/server/prompts)
+
+## State Management
+
+### Stateful vs Stateless Servers
+
+MCP was originally designed as a **stateful protocol** where servers maintain long-lived connections to clients and preserve state between requests. This enables:
+
+- User session management
+- Multi-step workflows
+- Contextual tool interactions
+- Per-client data isolation
+
+However, many use cases (simple tools, resources, prompts) don't require state. To support these scenarios, MCP now offers **stateless operation** using:
+
+- **Streamable HTTP transport** - HTTP POST for requests + Server-Sent Events (SSE) for responses
+- **No session ID** - Each request is independent
+- **Stateless tools** - Pure functions with no side effects
+
+You can run a fully stateless MCP server using the `streamable-http` transport without providing a `sessionId`.
+
+**When to use stateful servers:**
+- Building agents that maintain conversation context
+- Managing per-user data or preferences
+- Implementing multi-step workflows
+- Requiring authentication/authorization
+
+**When to use stateless servers:**
+- Exposing simple computational tools
+- Providing read-only resources
+- No session-specific data needed
+- Maximizing scalability
+
+## Client Features
+
+### Elicitation
+
+**Elicitation** is an MCP capability that allows servers to request user input during tool execution. Instead of failing when additional information is needed, servers can prompt the client to collect input and continue processing.
+
+Key use cases:
+- Requesting user confirmation before critical actions
+- Collecting additional parameters during execution
+- Supporting interactive, multi-step workflows
+- Enabling dynamic validation and correction
+
+During elicitation:
+1. Server calls `elicitInput()` with a message and schema
+2. Client presents the prompt to the user
+3. User provides input or cancels
+4. Server receives response and continues execution
+
+Learn more:
+- [Elicitation Guide](/agents/guides/elicitation/)
+- [MCP Elicitation Specification](https://modelcontextprotocol.io/specification/draft/client/elicitation)
+
+### Sampling
+
+**Sampling** allows MCP servers to request that clients perform AI model inference on their behalf. This enables servers to incorporate AI capabilities without hosting their own models.
+
+Learn more:
+- [MCP Sampling Specification](https://modelcontextprotocol.io/specification/draft/client/sampling)
+
+## Next steps
+
+- [Implement elicitation](/agents/guides/elicitation/) in your MCP server
+- [Build a Remote MCP Server](/agents/guides/remote-mcp-server/)
+- [Connect to an MCP server](/agents/guides/connect-mcp-client/) from your Agent

@@ -1,0 +1,374 @@
+---
+title: Elicitation
+pcx_content_type: how-to
+description: Learn how to implement interactive user input collection in MCP servers using elicitation
+tags:
+  - MCP
+sidebar:
+  order: 10
+---
+
+Elicitation allows MCP servers to request user input during tool execution, enabling interactive workflows where the server can ask for additional information before completing an operation.
+
+This pattern is useful for:
+
+- **Dynamic input** - Collect information that wasn't known upfront
+- **Multi-step workflows** - Build interactive experiences
+- **Confirmation prompts** - Ask users to confirm critical actions
+
+## How Elicitation Works
+
+Elicitation is a standard MCP protocol feature where:
+
+1. The server calls `elicitInput()` during tool execution
+2. The request is sent to the client via JSONRPC (method: `elicitation/create`)
+3. The client presents a prompt to the user
+4. The user provides input or cancels
+5. The response is sent back to the server
+6. The tool continues execution with the user's input
+
+The request times out after 60 seconds if the user doesn't respond.
+
+:::note
+For the latest protocol specification, see [MCP Elicitation Specification](https://modelcontextprotocol.io/specification/draft/client/elicitation).
+:::
+
+### Counter example
+
+This example implements a counter tool that asks the user how much to increase the counter by. If you want to skip to the code, see the [elicitation demo in the agents repo](https://github.com/cloudflare/agents/tree/main/examples/mcp-elicitation).
+
+#### 1. Configure the MCP server in an `Agent` with JSON Schema validator
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { CfWorkerJsonSchemaValidator } from "@modelcontextprotocol/sdk/validation/cfworker-provider.js";
+
+export class CounterAgent extends Agent<Env, State> {
+	server = new McpServer(
+		{
+			name: "counter-server",
+			version: "1.0.0",
+		},
+		{
+			jsonSchemaValidator: new CfWorkerJsonSchemaValidator(),
+		},
+	);
+}
+```
+
+#### 2. Configure WorkerTransport with durable storage
+
+```typescript
+import { WorkerTransport, type TransportState } from "@cloudflare/agents/mcp";
+
+const STATE_KEY = "mcp_transport_state";
+
+transport = new WorkerTransport({
+	sessionIdGenerator: () => this.name,
+	storage: {
+		get: () => this.ctx.storage.kv.get<TransportState>(STATE_KEY),
+		set: (state: TransportState) =>
+			this.ctx.storage.kv.put<TransportState>(STATE_KEY, state),
+	},
+});
+```
+
+#### 3. Register a tool that uses elicitation
+
+```typescript
+this.server.registerTool(
+	"increase-counter",
+	{
+		description: "Increase the counter with user input",
+		inputSchema: {
+			confirm: z.boolean().describe("Do you want to increase the counter?"),
+		},
+	},
+	async ({ confirm }, extra) => {
+		if (!confirm) {
+			return { content: [{ type: "text", text: "Cancelled." }] };
+		}
+
+		// Call elicitInput to request additional data from user
+		const result = await this.server.server.elicitInput(
+			{
+				message: "By how much do you want to increase the counter?",
+				requestedSchema: {
+					type: "object",
+					properties: {
+						amount: {
+							type: "number",
+							title: "Amount",
+							description: "The amount to increase the counter by",
+						},
+					},
+					required: ["amount"],
+				},
+			},
+			{ relatedRequestId: extra.requestId },
+		);
+
+		// Handle the response
+		if (result.action === "accept" && result.content) {
+			const amount = Number(result.content.amount);
+			this.setState({ ...this.state, counter: this.state.counter + amount });
+			return {
+				content: [{ type: "text", text: `Counter: ${this.state.counter}` }],
+			};
+		}
+
+		return { content: [{ type: "text", text: "Cancelled." }] };
+	},
+);
+```
+
+#### 4. Create the MCP request handler
+
+```typescript
+async onMcpRequest(request: Request) {
+  return createMcpHandler(this.server, {
+    transport: this.transport
+  })(request, this.env, {} as ExecutionContext);
+}
+```
+
+## Key components
+
+### The `elicitInput()` method
+
+**Parameters:**
+
+- `message` - The question/prompt to display to the user
+- `requestedSchema` - JSON Schema (2020-12 standard) describing the expected input structure
+- `relatedRequestId` - Optional ID linking this elicitation to the parent request
+
+### Response format
+
+The method returns an `ElicitResult`:
+
+```typescript
+interface ElicitResult {
+	action: "accept" | "cancel";
+	content?: unknown; // Data matching requestedSchema (if accepted)
+}
+```
+
+Check `result.action === "accept"` before accessing `result.content`.
+
+### Error handling
+
+Elicitation can fail if:
+
+- User doesn't respond within timeout (60 seconds)
+- Client doesn't support elicitation capability
+- Network or storage errors occur
+
+Always wrap `elicitInput()` in try-catch to handle failures gracefully.
+
+## Best practices
+
+### Use descriptive titles and descriptions
+
+```typescript
+requestedSchema: {
+  type: "object",
+  properties: {
+    amount: {
+      type: "number",
+      title: "Transaction Amount",  // Short label
+      description: "Amount in USD to transfer",  // Detailed explanation
+      minimum: 0.01,
+      maximum: 10000
+    }
+  }
+}
+```
+
+### Leverage JSON Schema validation
+
+The `requestedSchema` parameter supports the full **JSON Schema 2020-12** specification, including:
+
+- Type validation (`string`, `number`, `integer`, `boolean`, `object`, `array`)
+- Format validation (`email`, `uri`, `date-time`, etc.)
+- Range constraints (`minimum`, `maximum`, `minLength`, `maxLength`)
+- Enum values for restricted choices
+- Pattern matching with regular expressions
+- Nested object and array structures
+
+For the complete specification and validation keywords, see the [JSON Schema 2020-12 documentation](https://json-schema.org/draft/2020-12/json-schema-validation).
+
+### Handle optional fields
+
+```typescript
+requestedSchema: {
+  type: "object",
+  properties: {
+    name: { type: "string", title: "Name" },
+    nickname: { type: "string", title: "Nickname (optional)" }
+  },
+  required: ["name"]  // Only name is required
+}
+
+// In handler
+if (result.action === "accept") {
+  const name = result.content.name;
+  const nickname = result.content.nickname ?? name;  // Use name as fallback
+}
+```
+
+## Capability declaration
+
+For elicitation to work, the MCP client must declare support during initialization:
+
+```typescript
+// Client initialization (JSONRPC message)
+{
+  jsonrpc: "2.0",
+  method: "initialize",
+  params: {
+    capabilities: {
+      elicitation: {}  // Declares elicitation support
+    }
+  }
+}
+```
+
+The MCP client in the Agents SDK automatically declares elicitation capability when connecting to MCP servers.
+
+## Deployment considerations
+
+### Storage requirements
+
+WorkerTransport requires durable storage to persist transport state across requests and hibernation:
+
+```typescript
+const STATE_KEY = "mcp_transport_state";
+
+transport = new WorkerTransport({
+	sessionIdGenerator: () => this.name,
+	storage: {
+		get: () => {
+			return this.ctx.storage.kv.get<TransportState>(STATE_KEY);
+		},
+		set: (state: TransportState) => {
+			this.ctx.storage.kv.put<TransportState>(STATE_KEY, state);
+		},
+	},
+});
+```
+
+The storage configuration allows the transport to maintain session state and protocol information between requests.
+
+### Timeout handling
+
+Elicitation requests timeout after 60 seconds. Design your UX accordingly:
+
+```typescript
+try {
+	const result = await this.server.server.elicitInput(/* ... */);
+} catch (error) {
+	if (error.message.includes("timeout")) {
+		return {
+			content: [
+				{
+					type: "text",
+					text: "Request timed out. Please try again.",
+				},
+			],
+		};
+	}
+	throw error;
+}
+```
+
+### Concurrent elicitations
+
+Each elicitation gets a unique ID, allowing multiple concurrent elicitations per server:
+
+```typescript
+// Elicitation IDs are automatically generated
+const elicit1 = this.server.server.elicitInput({ message: "Q1", ... });
+const elicit2 = this.server.server.elicitInput({ message: "Q2", ... });
+
+// Both can be awaited independently
+const [result1, result2] = await Promise.all([elicit1, elicit2]);
+```
+
+## Example: File operation confirmation
+
+A example showing confirmation before deleting files:
+
+```typescript
+this.server.tool(
+	"delete-file",
+	"Delete a file with confirmation",
+	{
+		filepath: z.string().describe("Path to file to delete"),
+	},
+	async ({ filepath }, extra) => {
+		// Check if file exists
+		const exists = await this.checkFileExists(filepath);
+		if (!exists) {
+			return {
+				content: [
+					{
+						type: "text",
+						text: `File ${filepath} not found`,
+					},
+				],
+			};
+		}
+
+		// Get file info for confirmation prompt
+		const fileInfo = await this.getFileInfo(filepath);
+
+		// Elicit confirmation
+		const confirmation = await this.server.server.elicitInput(
+			{
+				message: `Delete ${filepath}?\n\nSize: ${fileInfo.size} bytes\nLast modified: ${fileInfo.modified}\n\nThis action cannot be undone.`,
+				requestedSchema: {
+					type: "object",
+					properties: {
+						confirm: {
+							type: "boolean",
+							title: "Confirm Deletion",
+							description: "Check this box to confirm deletion",
+						},
+					},
+					required: ["confirm"],
+				},
+			},
+			{ relatedRequestId: extra.requestId },
+		);
+
+		if (confirmation.action !== "accept" || !confirmation.content?.confirm) {
+			return {
+				content: [
+					{
+						type: "text",
+						text: "Deletion cancelled",
+					},
+				],
+			};
+		}
+
+		// Perform deletion
+		await this.deleteFile(filepath);
+
+		return {
+			content: [
+				{
+					type: "text",
+					text: `File ${filepath} deleted successfully`,
+				},
+			],
+		};
+	},
+);
+```
+
+## Next steps
+
+- Learn about other [MCP Features](/agents/model-context-protocol/mcp-features/)
+- [Build a Remote MCP Server](/agents/guides/remote-mcp-server/)
+- Read the [MCP Elicitation Specification](https://modelcontextprotocol.io/specification/draft/client/elicitation)
