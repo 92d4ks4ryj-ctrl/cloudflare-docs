@@ -1,0 +1,24 @@
+---
+title: React Router pre-rendering now works on Cloudflare Workers
+description: React Router's pre-rendering feature now works on Cloudflare Workers with full access to environment variables and bindings.
+products:
+  - workers
+date: 2025-12-22
+---
+
+[React Router](https://reactrouter.com) apps on Cloudflare Workers now have experimental support for [pre-rendering](https://reactrouter.com/how-to/pre-rendering#pre-rendering). Pre-rendered routes have full access to environment variables and bindings at build time and are served as [static assets](/workers/static-assets/).
+
+To enable:
+
+```ts title="react-router.config.ts"
+import type { Config } from "@react-router/dev";
+
+export default {
+  future: {
+    unstable_previewServerPrerendering: true,
+  },
+  prerender: true,
+} satisfies Config;
+```
+
+This feature requires `@react-router/dev` v7.x.y or later. See the [React Router framework guide](/workers/framework-guides/web-apps/react-router/#prerendering) for more details.
