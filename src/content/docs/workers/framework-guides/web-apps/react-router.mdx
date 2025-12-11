@@ -199,3 +199,32 @@ As you have direct access to your Worker entry file (`workers/app.ts`), you can 
 </Details>
 
 <Render file="frameworks-bindings" product="workers" />
+
+## Pre-rendering (Experimental)
+
+You can prerender your application to static HTML files at build time with React Router and serve them as [static assets](/workers/static-assets/). To enable:
+
+```ts title="react-router.config.ts"
+import type { Config } from "@react-router/dev";
+
+export default {
+  future: {
+    unstable_previewServerPrerendering: true,
+  },
+  prerender: true,
+} satisfies Config;
+```
+
+No additional configuration is needed in your wrangler config file. For more prerender options, see the [React Router documentation](https://reactrouter.com/how-to/pre-rendering#pre-rendering).
+
+:::note
+
+Requires `@react-router/dev` v7.x.y or later.
+
+:::
+
+:::caution
+
+Prerendering runs during the build step and uses your local environment variables, secrets, and bindings storage data. Ensure your local environment is configured correctly, and use [remote bindings](/workers/development-testing/#remote-bindings) to prerender with production data. If using [Workers Builds](/workers/ci-cd/builds/), update your [build settings](/workers/ci-cd/builds/configuration/#build-settings) to include any required environment variables and secrets.
+
+:::
