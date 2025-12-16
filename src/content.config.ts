@@ -5,6 +5,8 @@ import { docsSchema, i18nSchema } from "@astrojs/starlight/schema";
 
 import { glob, file } from "astro/loaders";
 
+import apiSchemaLoader from "./content/api-schema/loader";
+
 import {
 	appsSchema,
 	changelogSchema,
@@ -115,5 +117,8 @@ export const collections = {
 	stream: defineCollection({
 		loader: dataLoader("stream"),
 		schema: streamSchema,
+	}),
+	"api-schema": defineCollection({
+		loader: apiSchemaLoader({ cacheDuration: { week: 1 } }),
 	}),
 };

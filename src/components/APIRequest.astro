@@ -2,11 +2,11 @@
 import { z } from "astro:schema";
 import type { ComponentProps } from "astro/types";
 import { Code } from "@astrojs/starlight/components";
-import { getProperty } from "dot-prop";
-import { getSchema } from "~/util/api.ts";
 import type { OpenAPIV3 } from "openapi-types";
 import CURL from "./CURL.astro";
 import Details from "./Details.astro";
+import { getEntry } from "astro:content";
+import { red, blue, dim, green } from "kleur/colors";
 
 type Props = z.input<typeof props>;
 
@@ -32,22 +32,29 @@ if (json && form) {
 	throw new Error(`[APIRequest] Cannot use both "json" and "form" properties.`);
 }
 
-const schema = await getSchema();
+const operationEntry = await getEntry(
+	"api-schema",
+	`${method.toUpperCase()}-${path}`,
+);
+console.log(
+	dim(new Date().toLocaleTimeString("en-US", { hour12: false })),
+	blue("[@cloudflare/APIRequest]"),
+	operationEntry
+		? green(`✓ Found api-schema entry for ${method.toUpperCase()}-${path}.`)
+		: red(
+				`x Could not find api-schema entry for ${method.toUpperCase()}-${path}.`,
+			),
+);
 
-const operation = getProperty(
-	schema,
-	`paths.${path}.${method.toLowerCase()}`,
-) as unknown as
-	| OpenAPIV3.OperationObject<{
-			"x-api-token-group"?: string[];
-	  }>
-	| undefined;
-
-if (!operation) {
+if (!operationEntry) {
 	throw new Error(
 		`[APIRequest] Operation ${method} ${path} not found in schema.`,
 	);
 }
+
+const operation = operationEntry.data as OpenAPIV3.OperationObject<{
+	"x-api-token-group"?: string[];
+}>;
 
 const url = new URL(
 	path.startsWith("/") ? path.slice(1) : path,
