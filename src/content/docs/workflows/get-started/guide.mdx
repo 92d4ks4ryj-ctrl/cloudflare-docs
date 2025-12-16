@@ -25,7 +25,7 @@ At the end of this guide, you should be able to author, deploy and debug your ow
 
 <Render file="prereqs" product="workers" />
 
-## 1. Define your Workflow
+## 1. Create your Workflow
 
 To create your first Workflow, use the `create cloudflare` (C3) CLI tool, specifying the Workflows starter template:
 
@@ -104,8 +104,7 @@ export class MyWorkflow extends WorkflowEntrypoint<Env, Params> {
 A Workflow definition:
 
 1. Defines a `run` method that contains the primary logic for your workflow.
-2. Has at least one or more calls to `step.do` that encapsulates the logic of your Workflow.
-3. Allows steps to return (optional) state, allowing a Workflow to continue execution even if subsequent steps fail, without having to re-run all previous steps.
+2. Has at least one or more calls to `step.do` that define the execution of your workflow.
 
 A single Worker application can contain multiple Workflow definitions, as long as each Workflow has a unique class name. This can be useful for code re-use or to define Workflows which are related to each other conceptually.
 
@@ -113,11 +112,12 @@ Each Workflow is otherwise entirely independent: a Worker that defines multiple 
 
 ## 2. Create your Workflows steps
 
-Each `step` in a Workflow is an independently retriable function.
+Each `step` in a Workflow is an independently retriable function. Steps can return (optional) state, allowing a Workflow to continue execution even if subsequent steps fail, without having to re-run all previous steps.
 
-A `step` is what makes a Workflow powerful, as you can encapsulate errors and persist state as your Workflow progresses from step to step, avoiding your application from having to start from scratch on failure and ultimately build more reliable applications.
 
-* A step can execute code (`step.do`) or sleep a Workflow (`step.sleep`).
+A `step` is what makes a Workflow powerful, as you can encapsulate errors and persist state as your Workflow progresses from step to step.
+
+* A step can execute code (`step.do`), wait for external input (`step.waitForEvent`), or sleep a Workflow (`step.sleep`).
 * If a step fails (throws an exception), it will be automatically be retried based on your retry logic.
 * If a step succeeds, any state it returns will be persisted within the Workflow.
 
@@ -212,7 +212,9 @@ We have a very basic Workflow definition, but now need to provide a way to call 
 3. A schedule via [Cron Trigger](/workers/configuration/cron-triggers/)
 4. Via the [Workflows REST API](/api/resources/workflows/methods/list/) or [wrangler CLI](/workers/wrangler/commands/#workflows)
 
-Return to the `src/index.ts` file we created in the previous step and add a `fetch` handler that _binds_ to our Workflow. This binding allows us to create new Workflow instances, fetch the status of an existing Workflow, pause and/or terminate a Workflow.
+Return to the `src/index.ts` file we created in the previous step and add a `fetch` handler that _binds_ to our Workflow. This binding allows us to create new Workflow instances [^1] and take action upon them, including pausing, terminating, and fetching their status.
+
+[^1]: Each execution of a Workflow is referred to as an instance. 
 
 ```ts title="src/index.ts"
 // This is in the same file as your Workflow definition
@@ -401,7 +403,7 @@ With your Workflow deployed, you can now run it.
 
 :::note
 
-Because Workflows can be long running, it is possible to have running instances that represent different versions of your Workflow code over time.
+Because Workflows can be long running, it is possible to have running instances that represent different versions of your Workflow code over time. Once the instance has started, it will execute steps as defined in the version of the workflow that existed at its point of creation. To ensure an instance is executing the most recent version of a workflow, it must be restarted.
 
 :::
 
@@ -506,6 +508,8 @@ curl -s https://workflows-starter.YOUR_WORKERS_SUBDOMAIN.workers.dev/
 ```sh output
 {"id":"16ac31e5-db9d-48ae-a58f-95b95422d0fa","details":{"status":"queued","error":null,"output":null}}
 ```
+
+You can also trigger a Workflow by navigating in the Cloudflare Dashboard to **Workflows** -> Select an instance -> **Trigger**. 
 
 {/*
 
