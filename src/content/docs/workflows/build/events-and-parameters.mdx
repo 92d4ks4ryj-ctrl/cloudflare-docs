@@ -81,7 +81,7 @@ Because `waitForEvent` is part of the `WorkflowStep` API, you can call it multip
 Calling `waitForEvent` requires you to specify an `type` (up to 100 characters [^1]), which is used to match the corresponding `type` when sending an event to a Workflow instance.
 
 :::caution
-The `waitForEvent` type may only contain letters, digits, `-`, and `_`. Including `.` is not supported and will result in an `invalid_event_type` error.
+The `waitForEvent` type must match the pattern `_^[a-zA-Z0-9_][a-zA-Z0-9-_]\*$_`. Including `.` is not supported and will result in an `invalid_event_type` error.
 :::
 
 For example, to wait for billing webhook:
