@@ -225,6 +225,10 @@ Requires `@react-router/dev` v7.x.y or later.
 
 :::caution
 
-Prerendering runs during the build step and uses your local environment variables, secrets, and bindings storage data. Ensure your local environment is configured correctly, and use [remote bindings](/workers/development-testing/#remote-bindings) to prerender with production data. If using [Workers Builds](/workers/ci-cd/builds/), update your [build settings](/workers/ci-cd/builds/configuration/#build-settings) to include any required environment variables and secrets.
+Prerendering runs during the build step and uses your local environment variables, secrets, and bindings storage data. Ensure your build environment is configured correctly, and use [remote bindings](/workers/development-testing/#remote-bindings) to prerender with production data.
 
 :::
+
+### Prerendering in CI environments
+
+<Render file="prerendering-ci-environments" product="workers" />
