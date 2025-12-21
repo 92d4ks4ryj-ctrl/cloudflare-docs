@@ -1951,6 +1951,8 @@
 # workflows
 /workflows/reference/storage-options/ /workers/platform/storage-options/ 301
 /workflows/tutorials/ /workflows/examples 301
+/workflows/get-started/guide/ /workflows/get-started/ 301
+/workflows/get-started/cli-quick-start/ /workflows/get-started/ 301
 # workers KV
 /kv/platform/environments/ /kv/reference/environments/ 301
 /kv/platform/kv-commands/ /kv/reference/kv-commands/ 301
