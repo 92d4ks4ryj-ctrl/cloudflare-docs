@@ -150,6 +150,56 @@ If you have an existing MCP server using the `McpAgent` class:
 - **Using state?** Use `createMcpHandler` with a `WorkerTransport` inside an [Agent](/agents/) class. See [Stateful MCP Servers](/agents/model-context-protocol/mcp-handler-api#stateful-mcp-servers) for details.
 - **Need SSE support?** Continue using `McpAgent` with `serveSSE()` for legacy client compatibility. See the [McpAgent API reference](/agents/model-context-protocol/mcp-agent-api/).
 
+## Using MCP SDK directly (without Agents SDK)
+
+For the simplest possible MCP server setup, you can use the `@modelcontextprotocol/sdk` package directly without the Agents SDK. This approach uses `WebStandardStreamableHTTPServerTransport` which works natively on Cloudflare Workers.
+
+View the [complete example on GitHub](https://github.com/cloudflare/agents/tree/main/examples/mcp-server).
+
+<TypeScriptExample>
+
+```ts
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import { z } from "zod";
+
+const server = new McpServer({
+	name: "Hello MCP Server",
+	version: "1.0.0",
+});
+
+server.registerTool(
+	"hello",
+	{
+		description: "Returns a greeting message",
+		inputSchema: { name: z.string().optional() },
+	},
+	async ({ name }) => {
+		return {
+			content: [
+				{
+					text: `Hello, ${name ?? "World"}!`,
+					type: "text",
+				},
+			],
+		};
+	},
+);
+
+const transport = new WebStandardStreamableHTTPServerTransport();
+server.connect(transport);
+
+export default {
+	fetch: async (request: Request, _env: Env, _ctx: ExecutionContext) => {
+		return transport.handleRequest(request);
+	},
+};
+```
+
+</TypeScriptExample>
+
+This approach creates a stateless MCP server without session management. Each request is handled independently. If you need to add state management or use advanced features like elicitation, use an [Agent](/agents/) class with the [Agents SDK](/agents/) instead.
+
 ### Testing with MCP clients
 
 You can test your MCP server using an MCP client that supports remote connections, or use [`mcp-remote`](https://www.npmjs.com/package/mcp-remote), an adapter that lets MCP clients that only support local connections work with remote MCP servers.

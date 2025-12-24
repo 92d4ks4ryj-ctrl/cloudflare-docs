@@ -115,6 +115,99 @@ const handler = createMcpHandler(server, { transport });
 
 </TypeScriptExample>
 
+#### sessionIdGenerator
+
+A function that generates a unique session ID for each transport connection. Return `undefined` to disable session management and run in stateless mode.
+
+**Default:** Generates a cryptographically secure random UUID
+
+#### enableJsonResponse
+
+Enable traditional Request/Response mode, disabling streaming. When enabled, responses are returned as JSON instead of using Server-Sent Events.
+
+**Default:** `false`
+
+#### onsessioninitialized
+
+Callback fired when a new session is initialized. Receives the session ID as a parameter.
+
+<TypeScriptExample>
+
+```ts
+const handler = createMcpHandler(server, {
+	onsessioninitialized: (sessionId) => {
+		console.log(`New session started: ${sessionId}`);
+	},
+});
+```
+
+</TypeScriptExample>
+
+#### onsessionclosed
+
+Callback fired when a session is closed via DELETE request. Receives the session ID as a parameter.
+
+<TypeScriptExample>
+
+```ts
+const handler = createMcpHandler(server, {
+	onsessionclosed: (sessionId) => {
+		console.log(`Session closed: ${sessionId}`);
+	},
+});
+```
+
+</TypeScriptExample>
+
+#### eventStore
+
+Event store for resumability support. When provided, enables clients to reconnect and resume messages using Last-Event-ID. This allows clients to recover from connection interruptions without losing messages.
+
+<TypeScriptExample>
+
+```ts
+import { createMcpHandler, type EventStore } from "agents/mcp";
+
+const eventStore: EventStore = {
+	storeEvent: async (streamId, message) => {
+		// Store event and return unique event ID
+		const eventId = crypto.randomUUID();
+		await myStorage.put(`event:${eventId}`, { streamId, message });
+		return eventId;
+	},
+	replayEventsAfter: async (lastEventId, sender) => {
+		// Replay events after the given event ID
+		const events = await myStorage.getEventsAfter(lastEventId);
+		for (const { eventId, message } of events) {
+			await sender.send(eventId, message);
+		}
+		return streamId;
+	},
+	getStreamIdForEventId: async (eventId) => {
+		const event = await myStorage.get(`event:${eventId}`);
+		return event?.streamId;
+	},
+};
+
+const handler = createMcpHandler(server, { eventStore });
+```
+
+</TypeScriptExample>
+
+#### retryInterval
+
+Retry interval in milliseconds to suggest to clients in SSE retry field. Controls client reconnection timing for polling behavior.
+
+<TypeScriptExample>
+
+```ts
+const handler = createMcpHandler(server, {
+	retryInterval: 5000, // Suggest clients retry every 5 seconds
+});
+```
+
+</TypeScriptExample>
+
 ## Stateless MCP Servers
 
 Many MCP Servers are stateless, meaning they don't maintain any session state between requests. The `createMcpHandler` function is a lightweight alternative to the `McpAgent` class that can be used to serve an MCP server straight from a Worker. View the [complete example on GitHub](https://github.com/cloudflare/agents/tree/main/examples/mcp-worker).
