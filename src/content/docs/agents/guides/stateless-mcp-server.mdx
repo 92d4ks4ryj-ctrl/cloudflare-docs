@@ -1,0 +1,231 @@
+---
+pcx_content_type: tutorial
+title: Build a stateless MCP server
+tags:
+  - MCP
+sidebar:
+  order: 3
+---
+
+import { Details, Render, PackageManagers, WranglerConfig, TypeScriptExample } from "~/components";
+
+This guide demonstrates the simplest way to build a stateless MCP server on Cloudflare using the `@modelcontextprotocol/sdk` package directly. This approach is ideal when you do not need to maintain state between requests.
+
+## What you will build
+
+You will create a simple MCP server that:
+
+- Runs on Cloudflare Workers
+- Uses `WebStandardStreamableHTTPServerTransport` for HTTP-based communication
+- Exposes a single tool that returns a greeting
+- Requires no authentication
+- Maintains no state between requests
+
+## Prerequisites
+
+- A Cloudflare account ([sign up for free](https://dash.cloudflare.com/sign-up))
+- Node.js and npm installed
+- Basic familiarity with TypeScript
+
+## Set up your project
+
+First, create a new directory for your MCP server and initialize it:
+
+```sh
+mkdir my-stateless-mcp
+cd my-stateless-mcp
+npm init -y
+```
+
+Install the required dependencies:
+
+<PackageManagers
+  type="install"
+  pkg="@modelcontextprotocol/sdk zod"
+/>
+
+Install Wrangler as a dev dependency:
+
+<PackageManagers
+  type="install"
+  pkg="wrangler --save-dev"
+/>
+
+## Create the MCP server
+
+Create a `src` directory and add your server code:
+
+```sh
+mkdir src
+```
+
+Create `src/index.ts` with the following code:
+
+<TypeScriptExample>
+
+```ts title="src/index.ts"
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
+import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+
+const server = new McpServer({
+  name: "Hello MCP Server",
+  version: "1.0.0"
+});
+
+server.registerTool(
+  "hello",
+  {
+    description: "Returns a greeting message",
+    inputSchema: { name: z.string().optional() }
+  },
+  async ({ name }) => {
+    return {
+      content: [
+        {
+          text: `Hello, ${name ?? "World"}!`,
+          type: "text"
+        }
+      ]
+    };
+  }
+);
+
+const transport = new WebStandardStreamableHTTPServerTransport();
+server.connect(transport);
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Accept, mcp-session-id, mcp-protocol-version",
+  "Access-Control-Expose-Headers": "mcp-session-id",
+  "Access-Control-Max-Age": "86400"
+};
+
+function withCors(response: Response): Response {
+  for (const [key, value] of Object.entries(corsHeaders)) {
+    response.headers.set(key, value);
+  }
+  return response;
+}
+
+export default {
+  fetch: async (request: Request, _env: Env, _ctx: ExecutionContext) => {
+    if (request.method === "OPTIONS") {
+      return new Response(null, { headers: corsHeaders });
+    }
+    return withCors(await transport.handleRequest(request));
+  }
+};
+```
+
+</TypeScriptExample>
+
+## Configure Wrangler
+
+Create a `wrangler.jsonc` configuration file:
+
+<WranglerConfig>
+
+```jsonc
+{
+  "compatibility_date": "2025-01-08",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "src/index.ts",
+  "name": "my-stateless-mcp",
+  "observability": {
+    "logs": {
+      "enabled": true
+    }
+  }
+}
+```
+
+</WranglerConfig>
+
+Create a basic `tsconfig.json`:
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "lib": ["ES2022"],
+    "moduleResolution": "bundler",
+    "types": ["@cloudflare/workers-types"]
+  }
+}
+```
+
+## Test locally
+
+Start the development server:
+
+```sh
+npx wrangler dev
+```
+
+Your MCP server is now running locally. You can test it using the [MCP Inspector](https://github.com/modelcontextprotocol/inspector):
+
+```sh
+npx @modelcontextprotocol/inspector@latest
+```
+
+Open the inspector in your browser at `http://localhost:5173` and connect to your local server (usually `http://localhost:8787`).
+
+## Deploy to Cloudflare
+
+Deploy your MCP server to Cloudflare:
+
+```sh
+npx wrangler deploy
+```
+
+After deployment, your MCP server will be available at:
+
+```
+https://my-stateless-mcp.your-account.workers.dev
+```
+
+You can now connect to this URL from any MCP client that supports the `streamable-http` transport, such as:
+
+- [AI Playground](https://playground.ai.cloudflare.com/)
+- [MCP Inspector](https://github.com/modelcontextprotocol/inspector)
+- [Claude Desktop](/agents/guides/connect-mcp-client/) (via the `mcp-remote` proxy)
+
+## Understanding the code
+
+### WebStandardStreamableHTTPServerTransport
+
+The `WebStandardStreamableHTTPServerTransport` class from the MCP SDK handles the HTTP transport layer. It supports the [streamable-http transport](https://spec.modelcontextprotocol.io/specification/draft/basic/transports/#http-with-sse) which uses HTTP POST for requests and Server-Sent Events (SSE) for streaming responses.
+
+This transport is stateless by default - each request is independent and does not maintain session state between requests.
+
+### CORS headers
+
+The CORS headers are required to allow browser-based MCP clients to connect to your server. The configuration above allows all origins (`*`), but you can restrict this to specific domains in production.
+
+### Tool registration
+
+The `server.registerTool()` method registers a tool with your MCP server. Each tool has:
+
+- A unique name (`hello`)
+- A description that helps AI models understand when to use the tool
+- An input schema defined using [Zod](https://zod.dev/)
+- An async handler function that processes requests and returns results
+
+## Next steps
+
+Now that you have a basic stateless MCP server running:
+
+- Add more tools to expand your server's capabilities
+- Learn how to [build a remote MCP server](/agents/guides/remote-mcp-server/) with the `McpAgent` class for stateful interactions
+- Add [authentication and authorization](/agents/model-context-protocol/authorization/) to secure your server
+- Explore [MCP tools best practices](/agents/model-context-protocol/tools/) for designing effective tools
+
+## Related resources
+
+- [Model Context Protocol documentation](https://modelcontextprotocol.io/)
+- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
+- [Example code on GitHub](https://github.com/cloudflare/agents/tree/main/examples/mcp-server)

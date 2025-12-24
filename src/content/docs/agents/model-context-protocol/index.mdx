@@ -37,4 +37,9 @@ The MCP standard supports two modes of operation:
 
 ### Get Started
 
-Go to the [Getting Started](/agents/guides/remote-mcp-server/) guide to learn how to build and deploy your first remote MCP server to Cloudflare.
+Cloudflare offers two approaches for building MCP servers:
+
+- **[Stateless MCP servers](/agents/guides/stateless-mcp-server/)**: The simplest approach using the MCP SDK directly. Best for servers that do not need to maintain state between requests.
+- **[McpAgent-based servers](/agents/guides/remote-mcp-server/)**: Uses the `McpAgent` class for built-in state management, authentication, and Durable Objects integration. Best for complex servers that need session state or advanced features.
+
+Start with the [stateless approach](/agents/guides/stateless-mcp-server/) if you are new to MCP or need a simple server. Upgrade to the [McpAgent approach](/agents/guides/remote-mcp-server/) when you need state management or authentication.

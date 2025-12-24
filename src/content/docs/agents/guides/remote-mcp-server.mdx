@@ -11,7 +11,13 @@ import { Details, Render, PackageManagers } from "~/components";
 
 ## Deploy your first MCP server
 
-This guide will show you how to deploy your own remote MCP server on Cloudflare, with two options:
+This guide will show you how to deploy your own remote MCP server on Cloudflare using the `McpAgent` class, which provides built-in state management and authentication support. This approach is best when you need to maintain state between requests or implement complex authentication flows.
+
+:::note[Looking for a simpler stateless option?]
+If you do not need state management and want the simplest possible MCP server, see the [Build a stateless MCP server](/agents/guides/stateless-mcp-server/) guide. That approach uses the MCP SDK directly without the `McpAgent` wrapper.
+:::
+
+You can deploy an MCP server with two options:
 
 - **Without authentication** — anyone can connect and use the server (no login required).
 - **With [authentication and authorization](/agents/guides/remote-mcp-server/#add-authentication)** — users sign in before accessing tools, and you can control which tools an agent can call based on the user's permissions.
