@@ -63,6 +63,7 @@ async addMcpServer(
     transport?: {
       headers?: HeadersInit;
       type?: "sse" | "streamable-http" | "auto";
+      connectionTimeoutMs?: number;
     };
   }
 ): Promise<
@@ -82,6 +83,7 @@ async addMcpServer(
   - **`transport`** — Transport layer configuration:
     - **`headers`** — Custom HTTP headers for authentication
     - **`type`** — Transport type: `"sse"`, `"streamable-http"`, or `"auto"` (tries streamable-http first, falls back to sse)
+    - **`connectionTimeoutMs`** — Connection timeout in milliseconds. Default: 15000 (15 seconds). If the connection does not complete within this time, it will fail. Timeouts are often caused by proxies that strip SSE newline terminators, causing the parser to hang.
 
 #### Returns
 

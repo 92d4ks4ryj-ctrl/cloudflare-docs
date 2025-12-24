@@ -30,9 +30,57 @@ You can use the "Deploy to Cloudflare" button to create a remote MCP server.
 
 [![Deploy to Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/agents/tree/main/examples/mcp-worker)
 
-#### Remote MCP server (without authentication)
+#### Remote MCP server (using MCP SDK directly)
 
-Create an MCP server using `createMcpHandler`. View the [complete example on GitHub](https://github.com/cloudflare/agents/tree/main/examples/mcp-worker).
+The simplest way to create a stateless MCP server on Cloudflare Workers is to use `WebStandardStreamableHTTPServerTransport` from the `@modelcontextprotocol/sdk` directly, without the agents package. View the [complete example on GitHub](https://github.com/cloudflare/agents/tree/main/examples/mcp-server).
+
+<TypeScriptExample>
+
+```ts
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import { z } from "zod";
+
+const server = new McpServer({
+	name: "Hello MCP Server",
+	version: "1.0.0",
+});
+
+server.registerTool(
+	"hello",
+	{
+		description: "Returns a greeting message",
+		inputSchema: { name: z.string().optional() },
+	},
+	async ({ name }) => {
+		return {
+			content: [{ text: `Hello, ${name ?? "World"}!`, type: "text" }],
+		};
+	},
+);
+
+const transport = new WebStandardStreamableHTTPServerTransport();
+server.connect(transport);
+
+export default {
+	fetch: async (request: Request) => {
+		if (request.method === "OPTIONS") {
+			return new Response(null, { headers: corsHeaders });
+		}
+		return await transport.handleRequest(request);
+	},
+};
+```
+
+</TypeScriptExample>
+
+:::note
+This approach is ideal for stateless MCP servers. If you need session state, authentication, or integration with the Agents SDK, use `createMcpHandler` instead.
+:::
+
+#### Remote MCP server (using createMcpHandler)
+
+Create an MCP server using `createMcpHandler`. This approach provides integration with the Agents SDK and supports both stateless and stateful servers. View the [complete example on GitHub](https://github.com/cloudflare/agents/tree/main/examples/mcp-worker).
 
 <TypeScriptExample>
 
