@@ -1,0 +1,141 @@
+---
+title: MCP SDK v1.25.1 upgrade with enhanced WorkerTransport features
+description: Upgraded the MCP SDK to v1.25.1 with new resumability support, session lifecycle callbacks, and improved error handling. Added new mcp-server example demonstrating the simplest way to build MCP servers using the SDK directly.
+products:
+  - agents
+  - workers
+date: 2025-12-29
+---
+
+import { PackageManagers } from "~/components";
+
+We've upgraded the [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) to v1.25.1, bringing improved error handling, session lifecycle management, and resumability support to MCP servers on Cloudflare.
+
+This release includes enhanced `WorkerTransport` with event store integration for resumability, session close callbacks, configurable retry intervals, and improved error detection for transport-related issues.
+
+## New mcp-server example
+
+We've added a new [mcp-server example](https://github.com/cloudflare/agents/tree/main/examples/mcp-server) that demonstrates the simplest way to build an MCP server on Cloudflare Workers using the MCP SDK's `WebStandardStreamableHTTPServerTransport` directly — no `agents` package required.
+
+This zero-configuration approach is ideal for stateless MCP servers that do not need session management or agent features. Learn more in the [Build a stateless MCP server](/agents/guides/stateless-mcp-server/) guide.
+
+```ts
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import { z } from "zod";
+
+const server = new McpServer({
+	name: "Hello MCP Server",
+	version: "1.0.0",
+});
+
+server.registerTool(
+	"hello",
+	{
+		description: "Returns a greeting message",
+		inputSchema: { name: z.string().optional() },
+	},
+	async ({ name }) => {
+		return {
+			content: [{ text: `Hello, ${name ?? "World"}!`, type: "text" }],
+		};
+	},
+);
+
+const transport = new WebStandardStreamableHTTPServerTransport();
+server.connect(transport);
+
+export default {
+	fetch: async (request: Request) => {
+		if (request.method === "OPTIONS") {
+			return new Response(null, { headers: corsHeaders });
+		}
+		return withCors(await transport.handleRequest(request));
+	},
+};
+```
+
+## Enhanced WorkerTransport features
+
+### Resumability support with event store
+
+The `WorkerTransport` now supports resumability through an optional `eventStore` configuration. When configured, clients can reconnect and resume from their last received event using the `Last-Event-ID` header.
+
+```ts
+import { WorkerTransport } from "agents/mcp";
+import type { EventStore } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+
+const eventStore: EventStore = {
+	storeEvent: async (streamId, message) => {
+		const eventId = crypto.randomUUID();
+		await storage.put(`event:${eventId}`, { streamId, message });
+		return eventId;
+	},
+	replayEventsAfter: async (lastEventId, writer) => {
+		const events = await storage.getAllEventsAfter(lastEventId);
+		for (const event of events) {
+			await writer.send(event.id, event.message);
+		}
+		return events[0]?.streamId;
+	},
+	getStreamIdForEventId: async (eventId) => {
+		const event = await storage.get(`event:${eventId}`);
+		return event?.streamId;
+	},
+};
+
+const transport = new WorkerTransport({ eventStore });
+```
+
+This enables graceful handling of connection interruptions — clients can reconnect and pick up where they left off.
+
+### Session lifecycle callbacks
+
+New `onsessionclosed` callback allows you to clean up resources when a session ends:
+
+```ts
+const transport = new WorkerTransport({
+	onsessioninitialized: (sessionId) => {
+		console.log(`Session ${sessionId} started`);
+	},
+	onsessionclosed: (sessionId) => {
+		console.log(`Session ${sessionId} ended`);
+		// Clean up session-specific resources
+	},
+});
+```
+
+### Configurable retry interval
+
+Set the retry interval for SSE reconnections to implement polling behavior:
+
+```ts
+const transport = new WorkerTransport({
+	retryInterval: 5000, // Suggest clients retry after 5 seconds
+});
+```
+
+This controls how often clients attempt to reconnect when the connection is closed, useful for long-running operations.
+
+## Improved error handling
+
+The SDK upgrade includes improved error detection for transport-related issues. The `isTransportNotImplemented` helper now correctly identifies `StreamableHTTPError` responses with 404/405 status codes, making it easier to detect when a transport is not supported.
+
+This change is backward-compatible — existing error message parsing continues to work alongside the new error code detection.
+
+## Migration notes
+
+This is a non-breaking upgrade. The MCP SDK v1.25.1 maintains API compatibility with v1.23.0, but includes these internal improvements:
+
+- Function renames (internal): `isJSONRPCError` → `isJSONRPCErrorResponse`, `isJSONRPCResponse` → `isJSONRPCResultResponse`
+- Enhanced `WorkerTransport` with new optional features
+- Improved error handling for transport detection
+
+No code changes are required unless you want to adopt the new features.
+
+## Related resources
+
+- [Build a stateless MCP server guide](/agents/guides/stateless-mcp-server/)
+- [createMcpHandler API reference](/agents/model-context-protocol/mcp-handler-api/)
+- [Building MCP servers guide](/agents/guides/remote-mcp-server/)
+- [MCP examples on GitHub](https://github.com/cloudflare/agents/tree/main/examples)
