@@ -1,9 +1,18 @@
 ---
 title: Container runtime
+description: Sandbox SDK containers run isolated Linux environments with Python, Node.js, and common dev tools.
 pcx_content_type: concept
 sidebar:
   order: 3
+products:
+  - sandbox
 ---
+
+:::note[Coming soon: Sandbox SDK 1.0]
+This page documents containers on today's stable `@cloudflare/sandbox` package.
+
+Examples that use `startProcess` apply to the stable package. On **`@next`**, long-running work uses `exec(argv)` process handles — [Process execution](/sandbox/1-0-preview/processes/).
+:::
 
 Each sandbox runs in an isolated Linux container with Python, Node.js, and common development tools pre-installed. For a complete list of pre-installed software and how to customize the container image, see [Dockerfile reference](/sandbox/configuration/dockerfile/).
 
@@ -69,7 +78,7 @@ npm install express
 const { hostname } = new URL(request.url);
 await sandbox.startProcess('python -m http.server 8000');
 const exposed = await sandbox.exposePort(8000, { hostname });
-console.log(exposed.exposedAt); // Public URL
+console.log(exposed.url); // Public URL
 ```
 
 :::note[Local development]
@@ -102,10 +111,12 @@ const sandbox = getSandbox(env.Sandbox, `user-${userId}`);
 
 **Cannot**:
 - Load kernel modules or access host hardware
-- Run nested containers (no Docker-in-Docker)
 
 ## Related resources
 
+- [Deploy a Sandbox application](/sandbox/guides/deploy/) - Deploy and keep package and image aligned
+- [Deploy Containers](/containers/guides/deploy/) - Containers deploy path
 - [Architecture](/sandbox/concepts/architecture/) - How containers fit in the system
 - [Security model](/sandbox/concepts/security/) - Container isolation details
 - [Sandbox lifecycle](/sandbox/concepts/sandboxes/) - Container lifecycle management
+- [Docker-in-Docker](/sandbox/guides/docker-in-docker/) - Run Docker containers inside a Sandbox

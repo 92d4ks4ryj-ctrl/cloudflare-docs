@@ -1,15 +1,18 @@
 ---
 pcx_content_type: reference
 title: Pricing
+description: Cloudflare Stream pricing for minutes of video stored and minutes of video delivered.
 sidebar:
   order: 30
+products:
+  - stream
 ---
 
 import { DashButton } from "~/components";
 
-:::note[Media Transformations is now GA:]
+:::note[Stream Live WebRTC is going GA:]
 
-Billing for Media Transformations will begin on November 1st, 2025.
+Billing for WebRTC delivery will begin on October 15th, 2026.
 
 :::
 
@@ -26,14 +29,14 @@ Ingress (sending your content to us) and encoding are always free. Bandwidth is 
 
 ### Minutes of video stored
 
-Storage is a prepaid pricing dimension purchased in increments of $5 per 1,000 minutes stored, regardless of file size. You can check how much storage you have and how much you have used on the **Stream** page of the Cloudflare dashboard.
+Storage is a prepaid pricing dimension purchased in increments of $5 per month for each 1,000 minutes of video storage capacity. You can check how much storage you have and how much you have used on the **Stream** page of the Cloudflare dashboard.
 
 <DashButton url="/?to=/:account/stream/videos" />
 
 Storage is consumed by:
 
 - Original videos uploaded to your account
-- Recordings of live broadcasts
+- Recordings of live broadcasts using RTMP or SRT
 - The reserved `maxDurationSeconds` for Direct Creator and TUS uploads which have not been completed. After these uploads are complete or the upload link expires, this reservation is released.
 
 Storage is not consumed by:
@@ -43,8 +46,9 @@ Storage is not consumed by:
 - Deleted videos
 - Downloadable files generated for [MP4 Downloads](/stream/viewing-videos/download-videos/)
 - Multiple quality levels that Stream generates for each uploaded original
+- WebRTC broadcasts cannot currently be recorded, thus no storage is consumed
 
-Storage consumption is rounded up to the second of video duration; file size does not matter. Video stored in Stream does not incur additional storage fees from other storage products such as R2.
+Storage consumption is rounded up to the second of video duration, _regardless of file size._ Video stored in Stream does not incur additional storage fees from other storage products such as R2.
 
 :::note
 If you run out of storage, you will not be able to upload new videos or start new live streams until you purchase more storage or delete videos.
@@ -61,7 +65,8 @@ Delivery is a post-paid, usage-based pricing dimension billed at $1 per 1,000 mi
 
 Delivery is counted for the following uses:
 
-- Playback on the web or an app using [Stream's built-in player](/stream/viewing-videos/using-the-stream-player/) or the [HLS or DASH manifests](/stream/viewing-videos/using-own-player/)
+- Playback using [Stream's built-in player](/stream/viewing-videos/using-the-stream-player/) or the [HLS or DASH manifests](/stream/viewing-videos/using-own-player/)
+- [WebRTC (WHEP)](/stream/webrtc-beta/) playback
 - MP4 Downloads
 - Simulcasting via SRT or RTMP live outputs
 
@@ -104,9 +109,16 @@ Yes, contact our [Sales Team](https://www.cloudflare.com/plans/enterprise/contac
 
 ## Pricing for Media Transformations
 
-After November 1st, 2025, Media Transforamtions and Image Transformations will use the same subscriptions and usage metrics.
+Media Transformations and [Image Transformations](/images/pricing/#images-transformed) use the same subscriptions and usage metrics.
+
+When transforming a video via URL:
 
 - Generating a still frame (single image) from a video counts as 1 transformation.
 - Generating an optimized video or extracting audio counts as 1 transformation _per second of the output_ content.
 - Each unique transformation, as determined by input and unique combination of flags, is only billed once per calendar month.
 - All Media and Image Transformations cost $0.50 per 1,000 monthly unique transformation operations, with a free monthly allocation of 5,000.
+
+When transforming assets via the Workers binding:
+
+- While binding Media Transformations to Workers Bindings is in beta, operations via the binding are not billed.
+- After beta, the costs for transforming via bindings will be the same as for transforming via URL, but **all operations will be billed individually,** not based on uniqueness. Cache or store results for cost optimization and performance.

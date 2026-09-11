@@ -1,19 +1,24 @@
 ---
 pcx_content_type: navigation
 title: Waiting Room
+description: Control meeting access with a waiting room that requires host approval in RealtimeKit.
 slug: realtime/realtimekit/core/waiting-room
 sidebar:
-  order: 7
+  order: 9
+products:
+  - realtime
 ---
 
 import RTKSDKSelector from "~/components/realtimekit/RTKSDKSelector/RTKSDKSelector.astro";
 import RTKCodeSnippet from "~/components/realtimekit/RTKCodeSnippet/RTKCodeSnippet.astro";
 
-The waiting room feature allows hosts to control who can join a meeting. When enabled, participants must wait for approval before entering the meeting.
-
 :::note[Prerequisites]
 This page assumes you've already initialized the SDK and understand the meeting object structure. Refer to [Initialize SDK](/realtime/realtimekit/core/) and [Meeting Object Explained](/realtime/realtimekit/core/meeting-object-explained/) if needed.
 :::
+
+The waiting room feature allows hosts to control who can join a meeting. When enabled, participants must wait for approval before entering the meeting.
+
+<RTKSDKSelector />
 
 ## How the Waiting Room Works
 
@@ -43,8 +48,6 @@ The diagram below represents only waiting room-related states. The `roomState` p
 ```
 
 ## Listening to State Changes
-
-<RTKSDKSelector />
 
 ### Joined Event
 
@@ -94,7 +97,7 @@ useEffect(() => {
 
 </RTKCodeSnippet>
 
-<RTKCodeSnippet id="web-web-components">
+<RTKCodeSnippet id={["web-angular","web-web-components"]}>
 
 ```js
 meeting.self.on("roomJoined", () => {
@@ -128,22 +131,6 @@ extension MeetingViewModel: RtkMeetingRoomEventListener {
 ```
 
 </RTKCodeSnippet>
-
-<RTKCodeSnippet id="mobile-flutter">
-
-```dart
-class MeetingRoomNotifier extends RtkMeetingRoomEventListener {
-	@override
-	void onMeetingRoomJoinCompleted() {
-		// Local user is in the meeting
-	}
-}
-
-meeting.addMeetingRoomEventListener(MeetingRoomNotifier());
-```
-
-</RTKCodeSnippet>
-
 <RTKCodeSnippet id="mobile-react-native">
 
 Monitor when the local user joins the meeting:
@@ -231,7 +218,7 @@ useEffect(() => {
 
 </RTKCodeSnippet>
 
-<RTKCodeSnippet id="web-web-components">
+<RTKCodeSnippet id={["web-angular","web-web-components"]}>
 
 ```js
 meeting.self.on("waitlisted", () => {
@@ -284,31 +271,6 @@ extension MeetingViewModel: RtkSelfEventListener {
 ```
 
 </RTKCodeSnippet>
-
-<RTKCodeSnippet id="mobile-flutter">
-
-```dart
-class WaitingRoomNotifier extends RtkSelfEventListener {
-	@override
-	void onWaitListStatusUpdate(WaitlistStatus waitListStatus) {
-		switch (waitListStatus) {
-			case WaitlistStatus.waiting:
-			// Local user is in the waiting room
-			case WaitlistStatus.rejected:
-			// Local user's join room request was rejected by the host
-			case WaitlistStatus.accepted:
-			// Local user's join room request was accepted by the host
-			default:
-				break;
-		}
-	}
-}
-
-meeting.addSelfEventListener(WaitingRoomNotifier());
-```
-
-</RTKCodeSnippet>
-
 <RTKCodeSnippet id="mobile-react-native">
 
 Monitor when the local user is in the waiting room:
@@ -393,7 +355,7 @@ useEffect(() => {
 
 </RTKCodeSnippet>
 
-<RTKCodeSnippet id="web-web-components">
+<RTKCodeSnippet id={["web-angular","web-web-components"]}>
 
 ```js
 meeting.self.on("roomLeft", ({ state }) => {
@@ -456,36 +418,6 @@ extension MeetingViewModel: RtkSelfEventListener {
 ```
 
 </RTKCodeSnippet>
-
-<RTKCodeSnippet id="mobile-flutter">
-
-When the host rejects the entry request, the `onWaitListStatusUpdate` callback is triggered with `WaitlistStatus.rejected`:
-
-```dart
-class WaitingRoomNotifier extends RtkSelfEventListener {
-	@override
-	void onWaitListStatusUpdate(WaitlistStatus waitListStatus) {
-		switch (waitListStatus) {
-			case WaitlistStatus.rejected:
-				// Local user's join room request was rejected by the host
-				print("Your entry request was rejected");
-			case WaitlistStatus.waiting:
-				// Local user is in the waiting room
-				break;
-			case WaitlistStatus.accepted:
-				// Local user's join room request was accepted by the host
-				break;
-			default:
-				break;
-		}
-	}
-}
-
-meeting.addSelfEventListener(WaitingRoomNotifier());
-```
-
-</RTKCodeSnippet>
-
 <RTKCodeSnippet id="mobile-react-native">
 
 Monitor when the host rejects the entry request:
@@ -564,7 +496,7 @@ function WaitingRoomManager() {
 
 </RTKCodeSnippet>
 
-<RTKCodeSnippet id="web-web-components">
+<RTKCodeSnippet id={["web-angular","web-web-components"]}>
 
 ```js
 const currentState = meeting.self.roomState;
@@ -591,13 +523,6 @@ Use the event listeners shown above to monitor state changes.
 Use the event listeners shown above to monitor state changes.
 
 </RTKCodeSnippet>
-
-<RTKCodeSnippet id="mobile-flutter">
-
-Use the event listeners shown above to monitor state changes.
-
-</RTKCodeSnippet>
-
 <RTKCodeSnippet id="mobile-react-native">
 
 Handle all waiting room states in one component:
@@ -633,7 +558,7 @@ function WaitingRoomManager() {
 
 ## Host Actions
 
-Hosts can manage waiting room requests using participant management methods. See [Remote Participants](/realtime/realtimekit/core/remote-participant/) for details on:
+Hosts can manage waiting room requests using participant management methods. See [Remote Participants](/realtime/realtimekit/core/remote-participants/) for details on:
 
 - **`acceptWaitingRoomRequest(participantId)`** - Accept a participant from the waiting room
 - **`rejectWaitingRoomRequest(participantId)`** - Reject a participant's entry request
@@ -683,7 +608,7 @@ function WaitingRoomHost() {
 
 </RTKCodeSnippet>
 
-<RTKCodeSnippet id="web-web-components">
+<RTKCodeSnippet id={["web-angular","web-web-components"]}>
 
 ```js
 // Get waitlisted participants
@@ -775,56 +700,6 @@ extension MeetingViewModel: RtkWaitlistEventListener {
 ```
 
 </RTKCodeSnippet>
-
-<RTKCodeSnippet id="mobile-flutter">
-
-```dart
-// Get waitlisted participants
-final waitlistedParticipants = meeting.participants.waitlisted;
-
-// Accept a participant from the waiting room
-if (waitlistedParticipants.isNotEmpty) {
-	final participant = waitlistedParticipants[0];
-	meeting.participants.acceptWaitlistedParticipant(participant);
-}
-
-// Reject a participant's entry request
-if (waitlistedParticipants.isNotEmpty) {
-	final participant = waitlistedParticipants[0];
-	meeting.participants.rejectWaitlistedParticipant(participant);
-}
-
-// Accept all waitlisted participants at once
-meeting.participants.acceptAllWaitingRoomRequests();
-
-// Listen for waiting room events
-class WaitlistStatusNotifier extends RtkWaitlistEventListener {
-	@override
-	void onWaitListParticipantJoined(RtkRemoteParticipant participant) {
-		// Called when a new participant joins the waiting room
-	}
-
-	@override
-	void onWaitListParticipantAccepted(RtkRemoteParticipant participant) {
-		// Called when a waitlisted participant is accepted into the meeting
-	}
-
-	@override
-	void onWaitListParticipantRejected(RtkRemoteParticipant participant) {
-		// Called when a waitlisted participant is denied entry
-	}
-
-	@override
-	void onWaitListParticipantClosed(RtkRemoteParticipant participant) {
-		// Called when a waitlisted participant leaves the waiting room
-	}
-}
-
-meeting.addWaitlistEventListener(WaitlistStatusNotifier());
-```
-
-</RTKCodeSnippet>
-
 <RTKCodeSnippet id="mobile-react-native">
 
 ```tsx

@@ -1,17 +1,22 @@
 ---
 pcx_content_type: content
 title: Error Codes
+description: RealtimeKit error codes for identifying and troubleshooting SDK and API issues.
 slug: realtime/realtimekit/core/error-codes
 sidebar:
-  order: 14
+  order: 15
+products:
+  - realtime
 ---
 
-import { Tabs, TabItem } from "~/components";
+import RTKSDKSelector from "~/components/realtimekit/RTKSDKSelector/RTKSDKSelector.astro";
+import RTKCodeSnippet from "~/components/realtimekit/RTKCodeSnippet/RTKCodeSnippet.astro";
 
 This page describes RealtimeKit error codes to help you identify and troubleshoot issues.
 
-<Tabs syncKey="realtimeKitFrameworkTypeTabs">
-<TabItem label="Web Frameworks">
+<RTKSDKSelector />
+
+<RTKCodeSnippet id={["web-angular","web-web-components","web-react"]}>
 
 All Web Frameworks (Web Components, React, Angular) share the same error codes.
 
@@ -74,6 +79,12 @@ await meeting.leave();
 - **Error message**: Rate Limited
 - **Possible reason**: SDK API that you are calling is being called too often
 - **Possible solution**: API rate limiting generally occurs when the webpage is making an unusually high number of requests within a short period. To resolve this, analyze your code to determine why so many requests are being sent and implement optimizations to reduce unnecessary calls.
+
+#### Error code: 0014
+
+- **Error message**: Media connection failed
+- **Possible reason**: ICE (Interactive Connectivity Establishment) connection failed
+- **Possible solution**: Make sure your network allows WebRTC connections and turn.cloudflare.com & stun.cloudflare.com are accessible.
 
 ## Controller
 
@@ -553,15 +564,14 @@ await meeting.leave();
 - **Possible reason**: An unexpected error occurred that doesn't fall into other categories.
 - **Possible solution**: Check the logs for more details and retry the operation. If you continue to experience issues, please reach out to Cloudflare support.
 
-</TabItem>
+</RTKCodeSnippet>
 
-<TabItem label="Mobile">
+<RTKCodeSnippet id={["mobile-android","mobile-ios","mobile-react-native"]}>
 
 :::note
 React Native shares the same error codes as Web Frameworks. Refer to the Web Frameworks tab for the complete list of error codes and solutions.
 :::
 
-All mobile platforms (iOS, Android, Flutter) share the same error codes. All fallible APIs in RealtimeKit mobile SDKs return an operation-specific error type that implements the `RtkError` interface with `code: Int` (or `ErrorCode` for iOS) and `message: String` fields.
 
 ## Meeting
 
@@ -865,5 +875,4 @@ All mobile platforms (iOS, Android, Flutter) share the same error codes. All fal
 - **Possible reason**: The action cannot be performed in the current stage status.
 - **Possible solution**: Check the participant's stage status and perform the appropriate action.
 
-</TabItem>
-</Tabs>
+</RTKCodeSnippet>

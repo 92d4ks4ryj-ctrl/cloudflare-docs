@@ -2,6 +2,8 @@
 pcx_content_type: concept
 title: Serving a subdirectory
 description: How to configure a Worker with static assets on a subpath.
+products:
+  - workers
 ---
 
 import { FileTree, WranglerConfig } from "~/components";
@@ -30,13 +32,16 @@ With a [Wrangler configuration file](/workers/wrangler/configuration/) like so:
 
 <WranglerConfig>
 
-```toml
-name = "assets-on-a-path-example"
-main = "src/index.js"
-route = "example.com/blog/*"
-
-[assets]
-directory = "dist"
+```jsonc
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "assets-on-a-path-example",
+	"main": "src/index.js",
+	"route": "example.com/blog/*",
+	"assets": {
+		"directory": "dist"
+	}
+}
 ```
 
 </WranglerConfig>

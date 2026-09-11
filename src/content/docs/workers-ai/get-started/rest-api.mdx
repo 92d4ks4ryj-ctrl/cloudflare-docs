@@ -7,6 +7,8 @@ head:
   - tag: title
     content: Get started - REST API
 description: Use the Cloudflare Workers AI REST API to deploy a large language model (LLM).
+products:
+  - workers-ai
 ---
 
 import { DashButton } from "~/components"
@@ -32,7 +34,7 @@ To get these values:
    2. Review the prefilled information.
    3. Select **Create API Token**.
    4. Select **Copy API Token**.
-   5. Save that value for future use.
+   5. Save that value for future use. This token will be visible [on your profile](/api/get-started/create-token/).
 4. For **Get Account ID**, copy the value for **Account ID**. Save that value for future use.
 
 :::note
@@ -53,7 +55,7 @@ curl https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/ai/run/@cf/meta/
   -d '{ "prompt": "Where did the phrase Hello World come from" }'
 ```
 
-Replace the values for `{ACCOUNT_ID}` and `{API_token}`.
+Replace the values for `{ACCOUNT_ID}` and `{API_TOKEN}`.
 
 The API response will look like the following:
 

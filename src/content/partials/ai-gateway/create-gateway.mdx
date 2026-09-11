@@ -2,20 +2,21 @@
 {}
 ---
 
-import { TabItem, Tabs, LinkButton } from "~/components";
+import { TabItem, Tabs, DashButton } from "~/components";
 
 <Tabs syncKey="dashPlusAPI"> 
 <TabItem label="Dashboard">
 
-<LinkButton href="https://dash.cloudflare.com/?to=/:account/ai/ai-gateway#create">
-	Create a Gateway
-</LinkButton>
+<DashButton url="/?to=/:account/ai/ai-gateway" />
 
 1. Log into the [Cloudflare dashboard](https://dash.cloudflare.com/) and select your account.
 2. Go to **AI** > **AI Gateway**.
 3. Select **Create Gateway**.
 4. Enter your **Gateway name**. Note: Gateway name has a 64 character limit.
-5. Select **Create**.
+5. In **Workers AI Billing**, choose how Workers AI requests through this gateway are billed:
+   - **Standard billing** charges your Cloudflare account at the end of each billing cycle.
+   - **Unified billing** deducts from your prepaid AI Gateway credit balance in real time.
+6. Select **Create**.
 
 </TabItem> <TabItem label="API">
 

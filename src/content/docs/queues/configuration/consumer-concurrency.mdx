@@ -1,8 +1,11 @@
 ---
 title: Consumer concurrency
+description: Automatically scale out Queues consumer Workers horizontally to process messages faster.
 pcx_content_type: concept
 sidebar:
   order: 5
+products:
+  - queues
 ---
 
 import { WranglerConfig, DashButton } from "~/components";
@@ -90,10 +93,17 @@ To set a fixed maximum number of concurrent consumer invocations for a given que
 
 <WranglerConfig>
 
-```toml
-[[queues.consumers]]
-  queue = "my-queue"
-  max_concurrency = 1
+```jsonc
+{
+	"queues": {
+		"consumers": [
+			{
+				"queue": "my-queue",
+				"max_concurrency": 1
+			}
+		]
+	}
+}
 ```
 
 </WranglerConfig>

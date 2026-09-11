@@ -1,6 +1,8 @@
 ---
 pcx_content_type: configuration
 title: HubSpot
+products:
+  - cloudflare-for-saas
 head:
   - tag: title
     content: HubSpot | Provider guides
@@ -11,7 +13,7 @@ import { Render } from "~/components";
 
 <Render
 	file="provider-guide-intro"
-	params={{ providerName: "HubSpot" }}
+	params={{ providerName: "HubSpot", providerAssets: "websites" }}
 	product="cloudflare-for-platforms"
 />
 
@@ -19,7 +21,7 @@ import { Render } from "~/components";
 
 <Render
 	file="provider-guide-benefits"
-	params={{ providerName: "HubSpot" }}
+	params={{ providerName: "HubSpot", providerAssets: "environment" }}
 	product="cloudflare-for-platforms"
 />
 

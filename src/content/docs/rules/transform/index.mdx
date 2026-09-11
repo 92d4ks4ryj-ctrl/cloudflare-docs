@@ -1,11 +1,14 @@
 ---
 pcx_content_type: concept
+description: Modify request URLs, headers, and response headers with Transform Rules.
+products:
+  - rules
 title: Transform Rules
 sidebar:
   order: 5
 ---
 
-import { FeatureTable, Render } from "~/components";
+import { Render } from "~/components";
 
 Transform Rules allow you to adjust the URI path, query string, and HTTP headers of requests and responses on the Cloudflare global network.
 
@@ -14,7 +17,7 @@ There are several types of Transform Rules:
 - [**URL Rewrite Rules**](/rules/transform/url-rewrite/): Rewrite the URL path and query string of an HTTP request.
 - [**Request Header Transform Rules**](/rules/transform/request-header-modification/): Set the value of an HTTP request header or remove a request header.
 - [**Response Header Transform Rules**](/rules/transform/response-header-modification/): Set the value of an HTTP response header or remove a response header.
-- [**Managed Transforms**](/rules/transform/managed-transforms/): Perform common adjustments to HTTP request and response headers with the click of a button.
+- [**Managed Transforms**](/rules/transform/managed-transforms/): Perform common adjustments to HTTP request and response headers with pre-built, one-step configurations.
 
 <Render
 	file="snippets-alternative"
@@ -50,7 +53,11 @@ Cloudflare Transform Rules are available to all customers. Support for regular e
 
 This table outlines the Transform Rules features available with each customer plan:
 
-<FeatureTable id="rules.transform_rules" />
+|  | Free | Pro | Business | Enterprise |
+| - | - | - | - | - |
+| Availability | Yes | Yes | Yes | Yes |
+| Active Transform Rules | 10 | 25 | 50 | 300 |
+| Regex support | No | No | Yes | Yes |
 
 A Cloudflare user must have the [Firewall role](/fundamentals/manage-members/roles/) or one of the Administrator roles to access Transform Rules.
 
@@ -63,7 +70,7 @@ Managed Transforms run before other types of Transform Rules that modify HTTP he
 
 Transform Rules run in order. Rules that appear later in the list of Transform Rules can overwrite changes done by previous rules. You can define the rule order in the dashboard or via API.
 
-Request and response fields are immutable within each [phase](/ruleset-engine/about/phases/) while evaluating Transform Rules for a request/response. For more information, refer to [Field values during rule evaluation](/ruleset-engine/about/rules/#field-values-during-rule-evaluation).
+Request and response fields are immutable within each [phase](/ruleset-engine/about/phases/) while evaluating Transform Rules for a request/response. This means that later rules in the same phase cannot match on changes made by earlier rules (they always use the original field values). For more information, refer to [Field values during rule evaluation](/ruleset-engine/about/rules/#field-values-during-rule-evaluation).
 
 <Render
 	file="challenge-issues"

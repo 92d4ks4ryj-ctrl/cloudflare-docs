@@ -1,6 +1,8 @@
 ---
 title: IP address service bindings
 pcx_content_type: concept
+products:
+  - byoip
 tags:
   - Bindings
 sidebar:
@@ -11,14 +13,18 @@ sidebar:
 description: In IP address management, service binding refers to the association of IPs to specific Cloudflare services. Review the available options and the API endpoints to set up service bindings.
 ---
 
-import { DirectoryListing } from "~/components";
+import { DirectoryListing, Render } from "~/components";
 
-In IP address management, service bindings are mappings that control whether traffic destined for a given IP address is routed to [Magic Transit](/magic-transit/), the CDN pipeline [^1], or the Spectrum pipeline [^2].
+In the context of BYOIP, service bindings map traffic destined for IP addresses to the Cloudflare service it should be routed through - such as Magic Transit, CDN, or Spectrum. A default binding covering the entire prefix is required when you first [onboard](/byoip/get-started/#2-create-service-bindings), and additional bindings can be created at any time to route specific IP addresses or CIDR ranges to a different service.
 
-Service binding operations are currently only available via API. You can find all endpoints and their specifications in the [Cloudflare API documentation](/api/resources/addressing/subresources/prefixes/subresources/service_bindings/). For detailed guidance, refer to the sections and tutorials linked below.
+For example, you could set Magic Transit as the default service for Layer 3 DDoS protection across the entire prefix, while directing specific IPs to the CDN for Layer 7 processing. Refer to [Scope](#scope) for the available combinations.
 
 :::note
-Service bindings take four to six hours to propagate across Cloudflare's global network after being created or deleted. Services for the IP addresses in scope are likely disrupted during this window.
+
+**API-only**: Service binding operations are currently only available via API. You can find all endpoints and their specifications in the [Cloudflare API documentation](/api/resources/addressing/subresources/prefixes/subresources/service_bindings/). For detailed guidance, refer to the sections and tutorials linked below.
+
+**Time to propagate**: Service bindings take four to six hours to propagate across Cloudflare's global network after being created or deleted. Services for the IP addresses in scope are likely disrupted during this window.
+
 :::
 
 ## Scope
@@ -41,7 +47,9 @@ When a service binding of type `CDN` is applied, once the change has propagated 
 
 ### Spectrum
 
-When a service binding of type `Spectrum` is applied, once the change has propagated across Cloudflare's global network (four to six hours), any TCP/UDP/HTTP requests are directed into the Spectrum pipeline for Layer 4 or Layer 7 processing.
+When a service binding of type `Spectrum` is applied, once the change has propagated across Cloudflare's global network (four to six hours), any TCP/HTTP requests are directed into the Spectrum pipeline for Layer 4 or Layer 7 processing.
+
+<Render file="spectrum-udp-byoip-limitation" product="byoip" />
 
 ### Magic Transit
 
@@ -61,6 +69,10 @@ flowchart LR
 ```
 
 When adding a service binding for a given IP address, it must be either a CDN service binding or a Spectrum service binding. It is not possible (or necessary) to bind both services.
+
+### CDN egress
+
+<Render file="service-bindings-cdn-egress" product="byoip" />
 
 ## Tutorials
 

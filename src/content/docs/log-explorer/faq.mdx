@@ -5,13 +5,19 @@ structured_data: true
 description: Find answers to common questions about Log Explorer.
 sidebar:
   order: 152
+products:
+  - log-explorer
 ---
 
 import { DashButton } from "~/components";
 
 ## Which fields (or columns) are available for querying?
 
-All fields listed in [Datasets](/logs/logpush/logpush-job/datasets/) for the [supported datasets](/log-explorer/manage-datasets/#supported-datasets) are viewable in Log Explorer. 
+All fields listed in [Datasets](/logs/logpush/logpush-job/datasets/) for the [supported datasets](/log-explorer/manage-datasets/#supported-datasets) are viewable in Log Explorer.
+
+## Why is the `MatchedRules` field empty for some requests?
+
+`MatchedRules` is populated only by security and transformation rules (WAF, Rate Limiting, Transform Rules, Snippets). Cache rules do not populate this field. If you are investigating cache behavior, use the `Cache*` fields such as `CacheCacheStatus` instead.
 
 ## Why does my query not complete or time out?
 
@@ -61,9 +67,15 @@ Log Explorer uses Cloudflare Logpush and R2 behind the scenes to stream and stor
 
 ## Are Custom Dashboards based on R2 Log Explorer data, or on GraphQL?
 
-Custom Dashboards currently run on [GraphQL](/analytics/graphql-api/sampling/). Over time, this will evolve to include deeper integration between the two features, such as building charts directly from logs.
+Custom Dashboards use [GraphQL](/analytics/graphql-api/sampling/) for standard analytics datasets.
 
-## How can I track my Log Explorer usage? 
+Customers with Log Explorer can also select Log Explorer datasets to create charts from raw, unsampled log data. This is supported on all plans and account types, with no additional enablement required.
+
+You cannot turn a saved or active Log Explorer query directly into a Custom Dashboard chart.
+
+For more information, refer to [Custom dashboards](/analytics/custom-dashboards/).
+
+## How can I track my Log Explorer usage?
 
 Your monthly usage is displayed at the top of the Log Search and Manage Datasets dashboard sections within Log Explorer.
 
@@ -71,10 +83,39 @@ Your monthly usage is displayed at the top of the Log Search and Manage Datasets
 
 ## How do I turn off Log Explorer?
 
-Use the Manage Datasets feature to enable or disable ingestion for individual datasets and zones.
+To turn off Log Explorer you must:
 
-1. In the Cloudflare dashboard, go to the **Manage Account** > **Billing** page.
+1. **Stop log ingestion to immediately stop incurring additional charges.** To stop log ingestion, disable any enabled datasets at both the account level and zone level.
+2. **Cancel the Log Explorer subscription to stop renewal.** Your subscription may remain active until the end of the current billing cycle.
+
+### 1. Stop log ingestion
+
+After performing the following steps, you will immediately stop incurring additional charges for Log Explorer.
+
+#### Review and disable account-level datasets
+
+1. In the Cloudflare dashboard, go to the account-level **Manage datasets** page.
+
+   <DashButton url="/?to=/:account/log-explorer/manage-sources" />
+
+2. Turn off each dataset you no longer need using the toggle. To confirm each operation, select **Stop ingesting logs**.
+
+#### Review and disable zone-level datasets
+
+1. In the Cloudflare dashboard, go to the zone-level **Manage datasets** page.
+
+   <DashButton url="/?to=/:account/:zone/log-explorer/manage-sources" />
+
+2. Turn off each dataset you no longer need using the toggle. To confirm each operation, select **Stop ingesting logs**.
+
+3. Repeat for all relevant zones.
+
+### 2. Cancel the Log Explorer subscription
+
+This operation will stop Log Explorer's renewal.
+
+1. In the Cloudflare dashboard, go to the **Billing** page.
 
    <DashButton url="/?to=/:account/billing" />
 
-2. Under **Subscriptions**, find the Log Explorer subscription, and select **Cancel**.
+2. In the **Subscriptions** tab, find the Log Explorer subscription and select **Cancel**.

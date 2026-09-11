@@ -1,5 +1,8 @@
 ---
 pcx_content_type: how-to
+description: Set up advanced nameservers for your Foundation DNS zone.
+products:
+  - dns
 title: Set up advanced nameservers
 sidebar:
   order: 3
@@ -94,17 +97,19 @@ To enable advanced nameservers on an existing zone:
    	path="/zones/{zone_id}/dns_settings"
    	method="PATCH"
    	json={{
-   		foundation_dns: true,
+		nameservers: {
+			type: "cloudflare.advanced",
+		},
    	}}
    />
 
-   The response body will contain your assigned namservers in the `nameservers` object. You will use these nameservers in the next step.
+   The response body will contain your assigned nameservers in the `nameservers` object. You will use these nameservers in the next step.
 
    </TabItem> </Tabs>
 
 2. Update the authoritative nameservers at your registrar. This step depends on whether you are using [Cloudflare Registrar](/registrar/):
    - If you are using Cloudflare Registrar, [contact Cloudflare Support](/support/contacting-cloudflare-support/) to have your nameservers updated.
-   - If you are using a different registrar or if your zone is delegated to a parent zone, [manually update your nameservers](/dns/nameservers/update-nameservers/#specific-processes).
+   - If you are using a different registrar or if your zone is delegated, [manually update your nameservers](/dns/nameservers/update-nameservers/#specific-processes).
 
      :::caution
 

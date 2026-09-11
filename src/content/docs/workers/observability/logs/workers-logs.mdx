@@ -5,17 +5,26 @@ head: []
 description: Store, filter, and analyze log data emitted from Cloudflare Workers.
 sidebar:
   order: 2
+products:
+  - workers
 ---
 
-import { TabItem, Tabs, Steps, Render, WranglerConfig, DashButton } from "~/components";
+import {
+	TabItem,
+	Tabs,
+	Steps,
+	Render,
+	WranglerConfig,
+	DashButton,
+} from "~/components";
 
 Workers Logs lets you automatically collect, store, filter, and analyze logging data emitted from Cloudflare Workers. Data is written to your Cloudflare Account, and you can query it in the dashboard for each of your Workers. All newly created Workers will come with the observability setting enabled by default.
 
 Logs include [invocation logs](/workers/observability/logs/workers-logs/#invocation-logs), [custom logs](/workers/observability/logs/workers-logs/#custom-logs), errors, and uncaught exceptions.
 
-![Example showing the Workers Logs Dashboard](~/assets/images/workers-observability/preview.png)
+![Example showing the Workers Logs Dashboard](~/assets/images/workers-observability/wobs_workers_events_122.png)
 
-To send logs to a third party, use [Workers Logpush](/workers/observability/logs/logpush/) or [Tail Workers](/workers/observability/logs/tail-workers/).
+To send logs to a third party, use [OpenTelemetry export](/workers/observability/exporting-opentelemetry-data/) (recommended), [Workers Logpush](/workers/observability/logs/logpush/), or [Tail Workers](/workers/observability/logs/tail-workers/).
 
 ## Enable Workers Logs
 
@@ -27,10 +36,13 @@ You must add the observability setting for your Worker to write logs to Workers 
 
 <WranglerConfig>
 
-    ```toml
-    [observability]
-    enabled = true
-    head_sampling_rate = 1 # optional. default = 1.
+    ```jsonc
+    {
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1 // optional. default = 1.
+      }
+    }
     ```
 
 </WranglerConfig>
@@ -43,10 +55,17 @@ You must add the observability setting for your Worker to write logs to Workers 
 
     <WranglerConfig>
 
-    ```toml
-    [env.staging.observability]
-    enabled = true
-    head_sampling_rate = 1 # optional
+    ```jsonc
+    {
+      "env": {
+        "staging": {
+          "observability": {
+            "enabled": true,
+            "head_sampling_rate": 1 // optional
+          }
+        }
+      }
+    }
     ```
 
     </WranglerConfig>
@@ -63,7 +82,7 @@ Access logs for your Worker from the Cloudflare dashboard:
    <DashButton url="/?to=/:account/workers-and-pages" />
 
 2. In **Overview**, select your **Worker**.
-3. Select **Logs**.
+3. Select **Observability**.
 
 ## Best Practices
 
@@ -91,9 +110,14 @@ Invocation logs can be disabled in wrangler by adding the `invocation_logs = fal
 
 <WranglerConfig>
 
-```toml
-[observability.logs]
-invocation_logs = false
+```jsonc
+{
+	"observability": {
+		"logs": {
+			"invocation_logs": false
+		}
+	}
+}
 ```
 
 </WranglerConfig>
@@ -101,7 +125,7 @@ invocation_logs = false
 | Invocation Handler                                       | Invocation Message       |
 | -------------------------------------------------------- | ------------------------ |
 | [Alarm](/durable-objects/api/alarms/)                    | \<Scheduled Time\>       |
-| [Email](/email-routing/email-workers/runtime-api/)       | \<Email Recipient\>      |
+| [Email](/email-service/api/route-emails/email-handler/)       | \<Email Recipient\>      |
 | [Fetch](/workers/runtime-apis/handlers/fetch/)           | \<Method\> \<URL\>       |
 | [Queue](/queues/configuration/javascript-apis/#consumer) | \<Queue Name\>           |
 | [Cron](/workers/runtime-apis/handlers/scheduled/)        | \<UNIX-cron schedule\>   |
@@ -173,10 +197,13 @@ To enable head-based sampling, set `head_sampling_rate` within the observability
 
 <WranglerConfig>
 
-```toml
-[observability]
-enabled = true
-head_sampling_rate = 0.01 # 1% sampling rate
+```jsonc
+{
+	"observability": {
+		"enabled": true,
+		"head_sampling_rate": 0.01 // 1% sampling rate
+	}
+}
 ```
 
 </WranglerConfig>
@@ -198,10 +225,6 @@ KB](/workers/platform/limits/#log-size). Logs exceeding that size will be
 truncated and the log's `$cloudflare.truncated` field will be set to true.
 
 ## Pricing
-
-:::note[Billing start date]
-Workers Logs billing will begin on April 21, 2025.
-:::
 
 <Render file="workers_logs_pricing" product="workers" />
 

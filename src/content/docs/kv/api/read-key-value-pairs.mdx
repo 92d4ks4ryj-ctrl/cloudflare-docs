@@ -1,12 +1,18 @@
 ---
 pcx_content_type: concept
 title: Read key-value pairs
+description: Retrieve values from a Workers KV namespace using the get() method, with support for types, caching, and metadata.
 sidebar:
   order: 4
+products:
+  - kv
 ---
+
+import { Tabs, TabItem } from "~/components";
 
 To get the value for a given key, call the `get()` method of the [KV binding](/kv/concepts/kv-bindings/) on any [KV namespace](/kv/concepts/kv-namespaces/) you have bound to your Worker code:
 
+<Tabs syncKey="workersExamples"> <TabItem label="JavaScript" icon="seti:javascript">
 ```js
 // Read individual key
 env.NAMESPACE.get(key);
@@ -14,6 +20,15 @@ env.NAMESPACE.get(key);
 // Read multiple keys
 env.NAMESPACE.get(keys);
 ```
+</TabItem> <TabItem label="Python" icon="seti:python">
+```py
+# Read individual key
+self.env.NAMESPACE.get(key)
+
+# Read multiple keys
+self.env.NAMESPACE.get(keys)
+```
+</TabItem> </Tabs>
 
 The `get()` method returns a promise you can `await` on to get the value.
 
@@ -22,6 +37,7 @@ If you request a single key as a string, you will get a single response in the p
 You can also request an array of keys. The return value with be a `Map` of the key-value pairs found,
 with keys not found having `null` values.
 
+<Tabs syncKey="workersExamples"> <TabItem label="JavaScript" icon="seti:javascript">
 ```js
 export default {
 	async fetch(request, env, ctx) {
@@ -50,6 +66,35 @@ export default {
 	},
 };
 ```
+</TabItem> <TabItem label="Python" icon="seti:python">
+```py
+from workers import WorkerEntrypoint, Response
+
+class Default(WorkerEntrypoint):
+    async def fetch(self, request):
+        try:
+            # Read single key, returns value or None
+            value = await self.env.NAMESPACE.get("first-key")
+
+            # Read multiple keys, returns dict of values
+            values = await self.env.NAMESPACE.get(["first-key", "second-key"])
+
+            # Read single key with metadata
+            value_with_metadata = await self.env.NAMESPACE.getWithMetadata("first-key")
+
+            # Read multiple keys with metadata
+            values_with_metadata = await self.env.NAMESPACE.getWithMetadata(["first-key", "second-key"])
+
+            return Response.json({
+                "value": value,
+                "values": values,
+                "valueWithMetadata": value_with_metadata,
+                "valuesWithMetadata": values_with_metadata,
+            })
+        except Exception as e:
+            return Response(str(e), status=500)
+```
+</TabItem> </Tabs>
 
 :::note
 
@@ -76,28 +121,36 @@ Use the `get()` method to get a single value, or multiple values if given multip
 
 To get the value for a single key, call the `get()` method on any KV namespace you have bound to your Worker code with:
 
+<Tabs syncKey="workersExamples"> <TabItem label="JavaScript" icon="seti:javascript">
 ```js
 env.NAMESPACE.get(key, type?);
 // OR
 env.NAMESPACE.get(key, options?);
 ```
+</TabItem> <TabItem label="Python" icon="seti:python">
+```py
+self.env.NAMESPACE.get(key, type)
+# OR
+self.env.NAMESPACE.get(key, options)
+```
+</TabItem> </Tabs>
 
 ##### Parameters
 
 - `key`: `string`
   - The key of the KV pair.
 - `type`: `"text" | "json" | "arrayBuffer" | "stream"`
-  - Optional. The type of the value to be returned. `text` is the default.
+   - Optional. The type of the value to be returned. `text` is the default.
 - `options`: `{
     cacheTtl?: number,
     type?: "text" | "json" | "arrayBuffer" | "stream"
 }`
-  - Optional. Object containing the optional `cacheTtl` and `type` properties. The `cacheTtl` property defines the length of time in seconds that a KV result is cached in the global network location it is accessed from (minimum: 60). The `type` property defines the type of the value to be returned.
+   - Optional. Object containing the optional `cacheTtl` and `type` properties. The `cacheTtl` property defines the length of time in seconds that a KV result is cached in the global network location it is accessed from (minimum: 30). The `type` property defines the type of the value to be returned.
 
 ##### Response
 
 - `response`: `Promise<string | Object | ArrayBuffer | ReadableStream | null>`
-  - The value for the requested KV pair. The response type will depend on the `type` parameter provided for the `get()` command as follows:
+   - The value for the requested KV pair. The response type will depend on the `type` parameter provided for the `get()` command as follows:
     - `text`: A `string` (default).
     - `json`: An object decoded from a JSON string.
     - `arrayBuffer`: An [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) instance.
@@ -107,23 +160,31 @@ env.NAMESPACE.get(key, options?);
 
 To get the values for multiple keys, call the `get()` method on any KV namespace you have bound to your Worker code with:
 
+<Tabs syncKey="workersExamples"> <TabItem label="JavaScript" icon="seti:javascript">
 ```js
 env.NAMESPACE.get(keys, type?);
 // OR
 env.NAMESPACE.get(keys, options?);
 ```
+</TabItem> <TabItem label="Python" icon="seti:python">
+```py
+self.env.NAMESPACE.get(keys, type)
+# OR
+self.env.NAMESPACE.get(keys, options)
+```
+</TabItem> </Tabs>
 
 ##### Parameters
 
 - `keys`: `string[]`
   - The keys of the KV pairs. Max: 100 keys
 - `type`: `"text" | "json"`
-  - Optional. The type of the value to be returned. `text` is the default.
+   - Optional. The type of the value to be returned. `text` is the default.
 - `options`: `{
     cacheTtl?: number,
     type?: "text" | "json"
 }`
-  - Optional. Object containing the optional `cacheTtl` and `type` properties. The `cacheTtl` property defines the length of time in seconds that a KV result is cached in the global network location it is accessed from (minimum: 60). The `type` property defines the type of the value to be returned.
+   - Optional. Object containing the optional `cacheTtl` and `type` properties. The `cacheTtl` property defines the length of time in seconds that a KV result is cached in the global network location it is accessed from (minimum: 30). The `type` property defines the type of the value to be returned.
 
 :::note
 
@@ -151,11 +212,19 @@ Use the `getWithMetadata()` method to get a single value along with its metadata
 
 To get the value for a given key along with its metadata, call the `getWithMetadata()` method on any KV namespace you have bound to your Worker code:
 
+<Tabs syncKey="workersExamples"> <TabItem label="JavaScript" icon="seti:javascript">
 ```js
 env.NAMESPACE.getWithMetadata(key, type?);
 // OR
 env.NAMESPACE.getWithMetadata(key, options?);
 ```
+</TabItem> <TabItem label="Python" icon="seti:python">
+```py
+self.env.NAMESPACE.getWithMetadata(key, type)
+# OR
+self.env.NAMESPACE.getWithMetadata(key, options)
+```
+</TabItem> </Tabs>
 
 Metadata is a serializable value you append to each KV entry.
 
@@ -164,12 +233,12 @@ Metadata is a serializable value you append to each KV entry.
 - `key`: `string`
   - The key of the KV pair.
 - `type`: `"text" | "json" | "arrayBuffer" | "stream"`
-  - Optional. The type of the value to be returned. `text` is the default.
+   - Optional. The type of the value to be returned. `text` is the default.
 - `options`: `{
     cacheTtl?: number,
     type?: "text" | "json" | "arrayBuffer" | "stream"
 }`
-  - Optional. Object containing the optional `cacheTtl` and `type` properties. The `cacheTtl` property defines the length of time in seconds that a KV result is cached in the global network location it is accessed from (minimum: 60). The `type` property defines the type of the value to be returned.
+   - Optional. Object containing the optional `cacheTtl` and `type` properties. The `cacheTtl` property defines the length of time in seconds that a KV result is cached in the global network location it is accessed from (minimum: 30). The `type` property defines the type of the value to be returned.
 
 ##### Response
 
@@ -190,23 +259,31 @@ If there is no metadata associated with the requested key-value pair, `null` wil
 
 To get the values for a given set of keys along with their metadata, call the `getWithMetadata()` method on any KV namespace you have bound to your Worker code with:
 
+<Tabs syncKey="workersExamples"> <TabItem label="JavaScript" icon="seti:javascript">
 ```js
 env.NAMESPACE.getWithMetadata(keys, type?);
 // OR
 env.NAMESPACE.getWithMetadata(keys, options?);
 ```
+</TabItem> <TabItem label="Python" icon="seti:python">
+```py
+self.env.NAMESPACE.getWithMetadata(keys, type)
+# OR
+self.env.NAMESPACE.getWithMetadata(keys, options)
+```
+</TabItem> </Tabs>
 
 ##### Parameters
 
 - `keys`: `string[]`
   - The keys of the KV pairs. Max: 100 keys
 - `type`: `"text" | "json"`
-  - Optional. The type of the value to be returned. `text` is the default.
+   - Optional. The type of the value to be returned. `text` is the default.
 - `options`: `{
     cacheTtl?: number,
     type?: "text" | "json"
 }`
-  - Optional. Object containing the optional `cacheTtl` and `type` properties. The `cacheTtl` property defines the length of time in seconds that a KV result is cached in the global network location it is accessed from (minimum: 60). The `type` property defines the type of the value to be returned.
+   - Optional. Object containing the optional `cacheTtl` and `type` properties. The `cacheTtl` property defines the length of time in seconds that a KV result is cached in the global network location it is accessed from (minimum: 30). The `type` property defines the type of the value to be returned.
 
 :::note
 The `.get()` function to read multiple keys does not support `arrayBuffer` or `stream` return types. If you need to read multiple keys of `arrayBuffer` or `stream` types, consider using the `.get()` function to read individual keys in parallel with `Promise.all()`.
@@ -249,7 +326,7 @@ A hot read means that the data is cached on Cloudflare's edge network using the 
 
 `cacheTtl` is not recommended if your data is updated often and you need to see updates shortly after they are written, because writes that happen from other global network locations will not be visible until the cached value expires.
 
-The `cacheTtl` parameter must be an integer greater than or equal to `60`, which is the default. The maximum value for `cacheTtl` is [`Number.MAX_SAFE_INTEGER`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER).
+The `cacheTtl` parameter must be an integer greater than or equal to `30`. `60` is the default. The maximum value for `cacheTtl` is [`Number.MAX_SAFE_INTEGER`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER).
 
 Once a key has been read with a given `cacheTtl` in a region, it will remain cached in that region until the end of the `cacheTtl` or eviction. This affects regional and central tiers of KV's built-in caching layers. When writing to Workers KV, the regions in the regional and central caching layers internal to KV will get revalidated with the newly written result.
 

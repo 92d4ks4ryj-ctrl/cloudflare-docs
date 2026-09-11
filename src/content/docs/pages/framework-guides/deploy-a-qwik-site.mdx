@@ -1,6 +1,9 @@
 ---
 pcx_content_type: how-to
 title: Qwik
+description: Deploy a Qwik City application to Cloudflare Pages.
+products:
+  - pages
 ---
 
 import { PagesBuildPreset, Render, PackageManagers } from "~/components";
@@ -41,11 +44,7 @@ npm start
 
 ### Deploy via the Cloudflare dashboard
 
-<Render
-	file="framework-guides/learn-more"
-	product="pages"
-	params={{ name: "Qwik" }}
-/>
+<Render file="deploy-to-pages-steps-no-preset" product="pages" />
 
 <PagesBuildPreset framework="qwik" />
 

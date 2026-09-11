@@ -1,9 +1,14 @@
 ---
 pcx_content_type: how-to
+description: Create Single Redirect rules using the Rulesets API.
+products:
+  - rules
 title: Create a redirect rule via API
 sidebar:
   order: 3
   label: Create rule via API
+tags:
+  - Redirects
 ---
 
 import { Details, Render, APIRequest } from "~/components";
@@ -23,7 +28,7 @@ Add redirect rules to the entry point ruleset of the `http_request_dynamic_redir
 A redirect rule must have:
 
 - `action` set to `redirect`
-- An `action_parameters` object with additional configuration settings — refer to [Available settings](/rules/url-forwarding/single-redirects/settings/) for details.
+- An `action_parameters` object with additional configuration settings — refer to [Single Redirects settings](/rules/url-forwarding/single-redirects/settings/) for details.
 
 ## Example requests
 
@@ -99,9 +104,8 @@ The following request of the [Create a zone ruleset](/api/resources/rulesets/met
 </Details>
 
 <Render
-	file="terraform-use-ref-field"
+	file="terraform-use-ref-field-with-location"
 	product="rules"
-	params={{ addDocsLocation: true }}
 />
 
 If there is already a phase entry point ruleset for the `http_request_dynamic_redirect` phase, use the [Update a zone ruleset](/api/resources/rulesets/methods/update/) operation instead, like in the following example:

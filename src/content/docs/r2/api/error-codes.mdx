@@ -1,8 +1,11 @@
 ---
 pcx_content_type: reference
 title: Error codes
+description: Reference of R2 error codes returned by the Workers API and S3-compatible API.
 sidebar:
   order: 5
+products:
+  - r2
 ---
 
 This page documents error codes returned by R2 when using the [Workers API](/r2/api/workers/) or the [S3-compatible API](/r2/api/s3/), along with recommended fixes to help with troubleshooting.
@@ -38,7 +41,7 @@ For the **S3-compatible API**, errors are returned as XML in the response body:
 |------------|------|-------------|---------|-----------------|
 | 10002 | Unauthorized | 401 | Missing or invalid authentication credentials. | Verify your [API token](/r2/api/tokens/) or access key credentials are correct and have not expired. |
 | 10003 | AccessDenied | 403 | Insufficient permissions for the requested operation. | Check that your [API token](/r2/api/tokens/) has the required permissions for the bucket and operation. |
-| 10018 | ExpiredRequest | 400 | Presigned URL or request signature has expired. | Regenerate the [presigned URL](/r2/api/s3/presigned-urls/) or signature. |
+| 10018 | ExpiredRequest | 403 | Presigned URL or request signature has expired. | Regenerate the [presigned URL](/r2/api/s3/presigned-urls/) or signature. |
 | 10035 | SignatureDoesNotMatch | 403 | Request signature does not match calculated signature. | Verify your secret key and signing algorithm. Check for URL encoding issues. |
 | 10042 | NotEntitled | 403 | Account not entitled to this feature. | Ensure your account has an [R2 subscription](/r2/pricing/). |
 
@@ -49,7 +52,7 @@ For the **S3-compatible API**, errors are returned as XML in the response body:
 | 10005 | InvalidBucketName | 400 | Bucket name does not meet naming requirements. | Bucket names must be 3-63 chars, lowercase alphanumeric and hyphens, start/end with alphanumeric. |
 | 10006 | NoSuchBucket | 404 | The specified bucket does not exist. | Verify the bucket name is correct and the bucket exists in your account. |
 | 10008 | BucketNotEmpty | 409 | Cannot delete bucket that contains objects. | Delete all objects in the bucket before deleting the bucket. |
-| 10009 | TooManyBuckets | 400 | Account bucket limit exceeded (default: 1,000,000 buckets). | Request a limit increase via the [Limits Increase Request Form](https://forms.gle/ukpeZVLWLnKeixDu7). |
+| 10009 | TooManyBuckets | 400 | Account bucket limit exceeded (default: 1,000,000 buckets). | Request a limit increase via the [Limits Increase Request Form](https://forms.gle/eX6pXvit1wBv77Yw5). |
 | 10073 | BucketConflict | 409 | Bucket name already exists. | Choose a different bucket name. Bucket names must be unique within your account. |
 
 ### Object errors
@@ -58,7 +61,7 @@ For the **S3-compatible API**, errors are returned as XML in the response body:
 |------------|------|-------------|---------|-----------------|
 | 10007 | NoSuchKey | 404 | The specified object key does not exist. For the [Workers API](/r2/api/workers/workers-api-reference/), `get()` and `head()` return `null` instead of throwing. | Verify the object key is correct and the object has not been deleted. |
 | 10020 | InvalidObjectName | 400 | Object key contains invalid characters or is too long. | Use valid UTF-8 characters. Maximum key length is 1024 bytes. |
-| 100100 | EntityTooLarge | 400 | Object exceeds maximum size (5 GiB for single upload, 5 TiB for multipart). | Use [multipart upload](/r2/objects/multipart-objects/) for objects larger than 5 GiB. Maximum object size is 5 TiB. |
+| 100100 | EntityTooLarge | 400 | Object exceeds maximum size (5 GiB for single upload, 5 TiB for multipart). | Use [multipart upload](/r2/objects/upload-objects/#multipart-upload) for objects larger than 5 GiB. Maximum object size is 5 TiB. |
 | 10012 | MetadataTooLarge | 400 | Custom metadata exceeds the 8,192 byte limit. | Reduce custom metadata size. Maximum is 8,192 bytes total for all custom metadata. |
 | 10069 | ObjectLockedByBucketPolicy | 403 | Object is protected by a bucket lock rule and cannot be modified or deleted. | Wait for the retention period to expire. Refer to [bucket locks](/r2/buckets/bucket-locks/). |
 

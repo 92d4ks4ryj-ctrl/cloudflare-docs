@@ -3,15 +3,20 @@ pcx_content_type: concept
 title: Instant Logs
 sidebar:
   order: 116
+description: Stream live traffic logs from the dashboard or CLI.
+products:
+  - logs
 ---
 
-import { FeatureTable, APIRequest, DashButton } from "~/components";
+import { APIRequest, DashButton } from "~/components";
 
 Instant Logs allows Cloudflare customers to access a live stream of the traffic for their domain from the Cloudflare dashboard or from a command-line interface (CLI). Seeing data in real time allows you to investigate an attack, troubleshoot, debug or test out changes made to your network. Instant Logs is lightweight, simple to use and does not require any additional setup.
 
 ## Availability
 
-<FeatureTable id="analytics.instant_logs" />
+|  | Free | Pro | Business | Enterprise |
+| - | - | - | - | - |
+| Availability | No | No | Yes | Yes |
 
 ## Instant Logs via Cloudflare Dashboard
 
@@ -115,7 +120,7 @@ Once connected to the websocket, you will receive messages of line-delimited JSO
 Now that you have a connection to Cloudflare's websocket and are receiving logs from Cloudflare's global network, you can start slicing and dicing the logs. A handy tool for this is [Angle Grinder](https://github.com/rcoh/angle-grinder). Angle Grinder lets you apply filtering, transformations and aggregations on stdin with first class JSON support. For example, to get the number of visitors from each country you can sum the number of events by the `ClientCountry` field.
 
 ```bash
-awebsocat wss://logs.cloudflare.com/instant-logs/ws/sessions/<SESSION_ID> | agrind '* | json | sum(sampleInterval) by ClientCountry'
+websocat wss://logs.cloudflare.com/instant-logs/ws/sessions/<SESSION_ID> | agrind '* | json | sum(sampleInterval) by ClientCountry'
 ```
 
 Response:

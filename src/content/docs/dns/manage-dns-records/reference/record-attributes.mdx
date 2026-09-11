@@ -1,5 +1,8 @@
 ---
 pcx_content_type: concept
+description: Attributes and metadata for DNS records.
+products:
+  - dns
 title: Record attributes
 sidebar:
   order: 4
@@ -8,8 +11,6 @@ head:
     content: DNS record comments and tags
 
 ---
-
-import { FeatureTable } from "~/components"
 
 Use DNS record comments and tags to categorize and clarify the purpose of DNS records within Cloudflare.
 
@@ -33,15 +34,24 @@ The information in record attributes will not impact DNS record resolution or pr
 
 ## Availability
 
-Comments and tags are only supported for [full](/dns/zone-setups/full-setup/) and [partial zones](/dns/zone-setups/partial-setup/).
+Comments and tags are only supported for [primary zones (full setup)](/dns/zone-setups/full-setup/) and [partial zones (CNAME setup)](/dns/zone-setups/partial-setup/).
 
 ### Record comments
 
-<FeatureTable id="dns.record_comments" />
+|  | Free | Pro | Business | Enterprise |
+| - | - | - | - | - |
+| Availability | Yes | Yes | Yes | Yes |
+| Character limit | 100 | 500 | 500 | 500 |
+| Comments per record | 1 | 1 | 1 | 1 |
 
 ### Record tags
 
-<FeatureTable id="dns.record_tags" />
+|  | Free | Pro | Business | Enterprise |
+| - | - | - | - | - |
+| Availability | No | Yes | Yes | Yes |
+| Name character limit (everything before the colon) | N/A | 32 | 32 | 32 |
+| Value character limit (everything after the colon) | N/A | 100 | 100 | 100 |
+| Tags per record | N/A | 20 | 20 | 20 |
 
 ***
 

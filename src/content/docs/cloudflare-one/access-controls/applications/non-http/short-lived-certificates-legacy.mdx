@@ -1,6 +1,11 @@
 ---
 title: Short-lived certificates (legacy)
+tags:
+  - SSH
 pcx_content_type: how-to
+description: Short-lived certificates (legacy) in Access.
+products:
+  - cloudflare-one
 sidebar:
   order: 6
   label: Short-lived certificates (legacy)
@@ -27,10 +32,6 @@ To secure your server behind Cloudflare Access:
 1. [Connect the server to Cloudflare](/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel/) as a published application.
 2. Create a [self-hosted Access application](/cloudflare-one/access-controls/applications/http-apps/self-hosted-public-app/) for the server.
 
-:::note
-If you do not wish to use Access, refer instead to our [SSH proxy instructions](/cloudflare-one/traffic-policies/network-policies/ssh-logging/).
-:::
-
 ## 2. Ensure Unix usernames match user SSO identities
 
 Cloudflare Access will take the identity from a token and, using short-lived certificates, authorize the user on the target infrastructure.
@@ -39,16 +40,17 @@ Cloudflare Access will take the identity from a token and, using short-lived cer
 
 ## 3. Generate a short-lived certificate public key
 
-1. In [Cloudflare One](https://one.dash.cloudflare.com), go to **Access controls** > **Service credentials**.
+1. In the [Cloudflare dashboard](https://dash.cloudflare.com/), go to **Zero Trust** > **Access controls** > **Service credentials** > **SSH**.
 
-2. Go to the **SSH** tab.
+2. Select **Add a certificate**.
 
 3. In the **Application** dropdown, choose the Access application that represents your SSH server.
 
-4. Select **Generate certificate**. A row will appear with a public key scoped to your application.
+4. Select **Generate certificate**. A new row will appear in the short-lived certificates table with the name of your Access application.
 
-5. Save the key or keep it somewhere convenient for configuring your server.
-   You can return to copy this public key any time in the Service Auth dashboard.
+5. Select the short-lived certificate for your application.
+
+6. Copy its **CA public key**. You can return to copy this public key at any time.
 
 ## 4. Save your public key
 
@@ -94,4 +96,4 @@ By default, the browser-based terminal prompts the user for a username/password 
 
 ---
 
-Your SSH server is now protected behind Cloudflare Access — users will be prompted to authenticate with your identity provider before they can connect. You can also enable SSH command logging by configuring a [Gateway Audit SSH policy](/cloudflare-one/traffic-policies/network-policies/ssh-logging/).
+Your SSH server is now protected behind Cloudflare Access — users will be prompted to authenticate with your identity provider before they can connect.

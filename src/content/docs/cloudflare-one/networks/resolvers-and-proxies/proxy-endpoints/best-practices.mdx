@@ -1,8 +1,13 @@
 ---
 pcx_content_type: how-to
+description: PAC file best practices in Zero Trust networking.
+products:
+  - cloudflare-one
 title: PAC file best practices
 sidebar:
   order: 2
+tags:
+  - JavaScript
 ---
 
 import { Details } from "~/components";
@@ -216,6 +221,22 @@ if (
 }
 ```
 
+### Apps with certificate pinning
+
+When HTTPS inspection is enabled, applications and services that use certificate pinning reject the Cloudflare-injected certificate and fail to load when routed through the proxy. Bypass these domains in your PAC file:
+
+```js
+// Bypass certificate-pinned apps
+if (
+	shExpMatch(host, "*.example-bank.com") ||
+	shExpMatch(host, "*.example-pinned-app.com")
+) {
+	return "DIRECT";
+}
+```
+
+[Do Not Inspect (DNI) policies](/cloudflare-one/traffic-policies/http-policies/#do-not-inspect) will not prevent certificate pinning errors on these connections — bypassing certificate-pinned apps in the PAC file is required.
+
 ## Test PAC files
 
 ### Test with expected websites
@@ -256,10 +277,6 @@ If you have an issue with proxy routing, most browsers provide debugging tools t
 1. In Firefox, go to **Tools** > **Browser Tools** > **Browser Console**.
 2. Go to the website you want to test with the affected browser.
 3. Look for messages related to proxy resolution.
-
-You can also test PAC file logic directly in the console by copying your `FindProxyForURL` function and calling it with test URLs. For example:
-
-TODO
 
 </Details>
 

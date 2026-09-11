@@ -13,9 +13,9 @@ entries:
     keywords: [request, uri, url, domain, client, visitor]
     summary: The hostname used in the full request URI.
     description: |-
-      The `http.host` field contains the `Host` header from the original request.
+      The `http.host` field contains the `Host` header from the original client request.
 
-      If you have configured [Origin Rules](/rules/origin-rules/) that change the hostname, they will not be reflected in the `http.host` field value.
+      If you have configured [Origin Rules](/rules/origin-rules/) that change the hostname, this change is not reflected in the `http.host` value seen by other rule phases (such as custom rules, cache rules, or transform rules) or [Cloudflare Workers](/workers/). All rule phases and Workers evaluate against the original, unmodified host.
     example_value: |-
       "www.example.org"
 
@@ -209,8 +209,8 @@ entries:
     categories: [Request, Geolocation]
     keywords: [request, location, geolocation, dma, client, visitor]
     summary: The metro code or Designated Market Area (DMA) code associated with the incoming request.
-    description: |-
-      **Note**: Currently the value of `ip.src.metro_code` is always `"0"`, but this may change in the future. Refer to the [Changelog](/changelog/) for any updates.
+    example_value: |-
+      "635"
 
   - name: ip.src.region
     data_type: String
@@ -509,11 +509,17 @@ entries:
     plan_info_label: Enterprise add-on
     summary: Indicates whether the request contained an API session authentication token, as defined by API Shield's saved [session identifiers](/api-shield/get-started/#session-identifiers).
 
-  - name: cf.api_gateway.request_violates_schema
+  - name: cf.schema_validation.learned.violated
     data_type: Boolean
     categories: [Request]
-    keywords: [request, api shield, client, visitor]
-    summary: Indicates whether the request [violated the schema](/api-shield/security/schema-validation/) assigned to the respective saved endpoint.
+    keywords: [request, schema validation, learned profile]
+    summary: Returns `true` when an evaluated request [violates the learned profile](/waf/detections/application-profiles/fields/).
+
+  - name: cf.schema_validation.uploaded.violated
+    data_type: Boolean
+    categories: [Request]
+    keywords: [request, schema validation, uploaded schema]
+    summary: Returns `true` when an evaluated request [violates the supplied schema](/waf/detections/application-profiles/fields/).
 
   - name: cf.api_gateway.fallthrough_detected
     data_type: Boolean
@@ -538,7 +544,7 @@ entries:
     keywords: [request, bots, client, visitor]
     summary: Provides the type and purpose of a verified bot.
     description: |-
-      For more details, refer to [Verified bot categories](/bots/concepts/bot/verified-bots/#categories).
+      For more details, refer to [Verified bot categories](/bots/concepts/bot/verified-bots/#legacy-categories).
 
   - name: cf.bot_management.score
     data_type: Number
@@ -552,7 +558,7 @@ entries:
       Requires a Cloudflare Enterprise plan with [Bot Management](/bots/plans/bm-subscription/) enabled.
 
   - name: cf.bot_management.static_resource
-    data_type: Number
+    data_type: Boolean
     categories: [Request, Bots]
     keywords: [request, bots, client, visitor]
     plan_info_label: Enterprise add-on
@@ -616,6 +622,29 @@ entries:
     description: |-
       Provides the same information as [`cf.bot_management.verified_bot`](/ruleset-engine/rules-language/fields/reference/cf.bot_management.verified_bot/).
 
+  - name: cf.bot_management.corporate_proxy
+    data_type: Boolean
+    categories: [Request, Bots]
+    keywords: [request, bots, proxy, client, visitor]
+    plan_info_label: Enterprise add-on
+    summary: Indicates whether the incoming request comes from an identified Enterprise-only cloud-based corporate proxy or secure web gateway.
+    description: |-
+      Requires a Cloudflare Enterprise plan with [Bot Management](/bots/plans/bm-subscription/) enabled.
+    example_block: |-
+      not cf.bot_management.verified_bot
+      and not cf.bot_management.static_resource
+      and not cf.bot_management.corporate_proxy
+      and cf.bot_management.score lt 30
+
+  - name: cf.bot_management.signed_agent
+    data_type: Boolean
+    categories: [Request, Bots]
+    keywords: [request, bots, client, visitor, agent, web bot auth]
+    plan_info_label: Enterprise add-on
+    summary: Indicates whether or not the request originated from a known agent that self-identifies with Web Bot Auth, now classified as a [verified bot or agent](/bots/concepts/bot/verified-bots/) labeled as intermediary.
+    description: |-
+      Requires a Cloudflare Enterprise plan with [Bot Management](/bots/plans/bm-subscription/) enabled.
+
   - name: cf.edge.server_ip
     data_type: IP address
     categories: [Request]
@@ -625,7 +654,7 @@ entries:
       This field is only meaningful for [BYOIP customers](/byoip/).
 
   - name: cf.edge.server_port
-    data_type: IP address
+    data_type: Number
     categories: [Request]
     keywords: [request, cloudflare, client, visitor]
     summary: Represents the port number at which the Cloudflare global network received the request.
@@ -672,37 +701,37 @@ entries:
     data_type: Boolean
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: Indicates whether the request presented a valid but revoked client certificate.
+    summary: Indicates whether the mTLS client presented a valid but revoked client certificate.
     description: |-
       When `true`, the [`cf.tls_client_auth.cert_verified`](/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_verified/) field is also `true`.
 
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `false` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
 
   - name: cf.tls_client_auth.cert_verified
     data_type: Boolean
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: Returns `true` when a request presents a valid client certificate.
+    summary: Returns `true` when an mTLS client presents a valid client certificate.
     description: |-
-      Also returns `true` when a request includes a valid certificate that was revoked (refer to [`cf.tls_client_auth.cert_revoked`](/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_revoked/)).
+      Also returns `true` when a client presents a valid certificate that was revoked (refer to [`cf.tls_client_auth.cert_revoked`](/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_revoked/)).
 
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `false` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
 
   - name: cf.tls_client_auth.cert_presented
     data_type: Boolean
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: Returns `true` when a request presents a certificate (valid or not).
+    summary: Returns `true` when an mTLS client presents a certificate (valid or not).
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `false` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
 
   - name: cf.tls_client_auth.cert_issuer_dn
     data_type: String
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: The Distinguished Name (DN) of the Certificate Authority (CA) that issued the certificate included in the request.
+    summary: The Distinguished Name (DN) of the Certificate Authority (CA) that issued the mTLS client certificate.
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
     example_value: |-
       "CN=Access Testing CA,OU=TX,O=Access Testing,L=Austin,ST=Texas,C=US"
 
@@ -710,9 +739,9 @@ entries:
     data_type: String
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: The Distinguished Name (DN) of the owner (or requester) of the certificate included in the request.
+    summary: The Distinguished Name (DN) of the owner (or requester) of the mTLS client certificate.
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
     example_value: |-
       "CN=James Royal,OU=Access Admins,O=Access,L=Austin,ST=Texas,C=US"
 
@@ -720,9 +749,9 @@ entries:
     data_type: String
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: The Distinguished Name (DN) of the Certificate Authority (CA) that issued the certificate in the request in [RFC 2253](https://datatracker.ietf.org/doc/html/rfc2253) format.
+    summary: The Distinguished Name (DN) of the Certificate Authority (CA) that issued the mTLS client certificate in [RFC 2253](https://datatracker.ietf.org/doc/html/rfc2253) format.
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
     example_value: |-
       "CN=Access Testing CA,OU=TX,O=Access Testing,L=Austin,ST=Texas,C=US"
 
@@ -730,9 +759,9 @@ entries:
     data_type: String
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: The Distinguished Name (DN) of the owner (or requester) of the certificate in the request in [RFC 2253](https://datatracker.ietf.org/doc/html/rfc2253) format.
+    summary: The Distinguished Name (DN) of the owner (or requester) of the mTLS client certificate in [RFC 2253](https://datatracker.ietf.org/doc/html/rfc2253) format.
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
     example_value: |-
       "CN=James Royal,OU=Access Admins,O=Access,L=Austin,ST=Texas,C=US"
 
@@ -740,9 +769,9 @@ entries:
     data_type: String
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: The Distinguished Name (DN) of the Certificate Authority (CA) that issued the certificate in the request in a legacy format.
+    summary: The Distinguished Name (DN) of the Certificate Authority (CA) that issued the mTLS client certificate in a legacy format.
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
     example_value: |-
       "/C=US/ST=Texas/L=Austin/O=Access Testing/OU=TX/CN=Access Testing CA"
 
@@ -750,9 +779,9 @@ entries:
     data_type: String
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: The Distinguished Name (DN) of the owner (or requester) of the certificate in the request in a legacy format.
+    summary: The Distinguished Name (DN) of the owner (or requester) of the mTLS client certificate in a legacy format.
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
     example_value: |-
       "/C=US/ST=Texas/L=Austin/O=Access/OU=Access Admins/CN=James Royal"
 
@@ -760,9 +789,9 @@ entries:
     data_type: String
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: Serial number of the certificate in the request.
+    summary: Serial number of the mTLS client certificate.
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
     example_value: |-
       "527E0F20A20EA2A4146C78390F34CE7AF0878CA4"
 
@@ -770,9 +799,9 @@ entries:
     data_type: String
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: Serial number of the direct issuer of the certificate in the request.
+    summary: Serial number of the direct issuer of the mTLS client certificate.
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
     example_value: |-
       "2688201DBA77402EA87118876F2E1B24CF8B0395"
 
@@ -780,9 +809,9 @@ entries:
     data_type: String
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: The SHA-256 fingerprint of the certificate in the request.
+    summary: The SHA-256 fingerprint of the mTLS client certificate.
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
     example_value: |-
       "af363dc85bc942a892d3cee9796190fdb36d89cd588a4f1cb17c74a943439714"
 
@@ -790,9 +819,9 @@ entries:
     data_type: String
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: The SHA-1 fingerprint of the certificate in the request.
+    summary: The SHA-1 fingerprint of the mTLS client certificate.
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
     example_value: |-
       "933ad5282c560ae3f482a43ecd73bc9de878a190"
 
@@ -800,9 +829,9 @@ entries:
     data_type: String
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: The certificate in the request is not valid before this date.
+    summary: The mTLS client certificate is not valid before this date.
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
     example_value: |-
       "Mar 21 13:35:00 2022 GMT"
 
@@ -810,9 +839,9 @@ entries:
     data_type: String
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: The certificate in the request is not valid after this date.
+    summary: The mTLS client certificate is not valid after this date.
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
     example_value: |-
       "Mar 21 13:35:00 2023 GMT"
 
@@ -820,9 +849,9 @@ entries:
     data_type: String
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: The Subject Key Identifier (SKI) of the certificate in the request.
+    summary: The Subject Key Identifier (SKI) of the mTLS client certificate.
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
     example_value: |-
       "27846FAE6EAC4A8DAD9101B519CF1EB460242831"
 
@@ -830,11 +859,87 @@ entries:
     data_type: String
     categories: [Request, mTLS]
     keywords: [request, ssl, mtls, client, visitor]
-    summary: The Subject Key Identifier (SKI) of the direct issuer of the certificate in the request.
+    summary: The Subject Key Identifier (SKI) of the direct issuer of the mTLS client certificate.
     description: |-
-      This field is only filled in if the request includes a client certificate for [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
     example_value: |-
       "8204924CF49D471E855862706D889F58F6B784D3"
+
+  - name: cf.tls_client_auth.cert_rfc9440
+    data_type: String
+    categories: [Request, mTLS]
+    keywords: [request, ssl, mtls, client, visitor, rfc9440, cert, chain]
+    summary: The mTLS client certificate encoded as a Structured Fields Byte Sequence per [RFC 9440](https://datatracker.ietf.org/doc/html/rfc9440).
+    description: |-
+      Contains the DER-encoded, Base64-wrapped client leaf certificate formatted as an [RFC 9440](https://datatracker.ietf.org/doc/html/rfc9440#name-client-cert-http-header-fie) `Client-Cert` HTTP header value. The value is a Structured Fields Byte Sequence (the Base64 data prefixed and suffixed by `:`).
+
+      This field is populated regardless of the certificate validation result. Before using this value, verify the certificate status by checking [`cf.tls_client_auth.cert_verified`](/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_verified/) and [`cf.tls_client_auth.cert_revoked`](/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_revoked/).
+
+      Returns `""` if no client certificate was presented or if the encoded value exceeds the 10 KiB size limit. Refer to [`cf.tls_client_auth.cert_rfc9440_too_large`](/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_rfc9440_too_large/) to distinguish between these cases.
+
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+    example_value: |-
+      ":MIIBqDCCAU6g......:"
+
+  - name: cf.tls_client_auth.cert_rfc9440_too_large
+    data_type: Boolean
+    categories: [Request, mTLS]
+    keywords:
+      [
+        request,
+        ssl,
+        mtls,
+        client,
+        visitor,
+        rfc9440,
+        cert,
+        chain,
+        too large,
+        error,
+      ]
+    summary: Returns `true` when the RFC 9440 encoded mTLS client certificate exceeds the 10 KiB size limit.
+    description: |-
+      When `true`, [`cf.tls_client_auth.cert_rfc9440`](/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_rfc9440/) contains an empty string instead of the encoded certificate.
+
+      This field defaults to `false` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+
+  - name: cf.tls_client_auth.cert_chain_rfc9440
+    data_type: String
+    categories: [Request, mTLS]
+    keywords: [request, ssl, mtls, client, visitor, rfc9440, cert, chain]
+    summary: The mTLS client certificate chain (excluding the leaf certificate) encoded as a structured field list per [RFC 9440](https://datatracker.ietf.org/doc/html/rfc9440).
+    description: |-
+      Contains the DER-encoded, Base64-wrapped client certificate chain formatted as an [RFC 9440](https://datatracker.ietf.org/doc/html/rfc9440#name-client-cert-chain-http-head) `Client-Cert-Chain` HTTP header value. The value is a structured field list of byte sequences. The leaf certificate is not included in the chain (it is available in [`cf.tls_client_auth.cert_rfc9440`](/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_rfc9440/)). The chain reflects the certificates as sent by the client, without any reordering or validation.
+
+      This field is populated regardless of the certificate validation result. Before using this value, verify the certificate status by checking [`cf.tls_client_auth.cert_verified`](/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_verified/) and [`cf.tls_client_auth.cert_revoked`](/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_revoked/).
+
+      Returns `""` if the client did not send any intermediate certificates or if the encoded value exceeds the 16 KiB size limit. Refer to [`cf.tls_client_auth.cert_chain_rfc9440_too_large`](/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_chain_rfc9440_too_large/) to distinguish between these cases.
+
+      This field defaults to `""` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
+    example_value: |-
+      ":MII.....=:, :MII....=:"
+
+  - name: cf.tls_client_auth.cert_chain_rfc9440_too_large
+    data_type: Boolean
+    categories: [Request, mTLS]
+    keywords:
+      [
+        request,
+        ssl,
+        mtls,
+        client,
+        visitor,
+        rfc9440,
+        cert,
+        chain,
+        too large,
+        error,
+      ]
+    summary: Returns `true` when the RFC 9440 encoded client certificate chain exceeds the 16 KiB size limit.
+    description: |-
+      When `true`, [`cf.tls_client_auth.cert_chain_rfc9440`](/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_chain_rfc9440/) contains an empty string instead of the encoded certificate chain.
+
+      This field defaults to `false` if the connection does not use [mTLS authentication](/ssl/client-certificates/enable-mtls/).
 
   - name: cf.tls_client_extensions_sha1
     data_type: String
@@ -898,13 +1003,98 @@ entries:
     example_value: |-
       true
 
+  - name: cf.edge.l4.delivery_rate
+    data_type: Integer
+    categories: [Request]
+    keywords:
+      [request, l4, delivery rate, bandwidth, network, performance, transport]
+    summary: The most recent data delivery rate estimate for the client connection, in bytes per second.
+    description: |-
+      This metric reflects the rate at which data is being successfully delivered over the connection.
+
+      Returns `0` when L4 statistics are not available for the request.
+    example_value: |-
+      123456
+    example_block: |-
+      # Match requests where the delivery rate is below 100 KB/s
+      cf.edge.l4.delivery_rate < 100000
+
   - name: cf.timings.client_tcp_rtt_msec
     data_type: Number
     categories: [Request]
     keywords: [request, timing, tcp, rtt, performance, latency]
-    summary: The smoothed TCP round-trip time from client to Cloudflare in milliseconds.
+    summary: The smoothed TCP round-trip time (RTT) between Cloudflare and the client in milliseconds.
+    description: |-
+      This field is only populated for TCP (HTTP/1, HTTP/2) connections. For QUIC connections, the value is `0`.
     example_value: |-
       20
+    example_block: |-
+      # Match requests over TCP where the RTT exceeds 200 ms
+      cf.timings.client_quic_rtt_msec > 200
+
+  - name: cf.timings.client_quic_rtt_msec
+    data_type: Integer
+    categories: [Request]
+    keywords: [request, timing, quic, rtt, performance, latency, http3]
+    summary: The smoothed QUIC round-trip time (RTT) between Cloudflare and the client in milliseconds.
+    description: |-
+      This field is only populated for QUIC (HTTP/3) connections. For TCP connections, the value is `0`.
+    example_value: |-
+      42
+    example_block: |-
+      # Match requests over QUIC where the RTT exceeds 200 ms
+      cf.timings.client_quic_rtt_msec > 200
+
+  - name: cf.timings.edge_msec
+    data_type: Integer
+    categories: [Request]
+    keywords: [request, timing, edge, performance]
+    summary: The time spent processing a request within the Cloudflare global network in milliseconds.
+    description: |-
+      The value corresponds to the time interval between when the Cloudflare edge server accepted the HTTP request headers for processing and just before the HTTP response headers were available to be sent to the client.
+
+      The value does not include:
+        - The time spent forwarding the request to the origin server (refer to [`cf.timings.origin_ttfb_msec`](/ruleset-engine/rules-language/fields/reference/cf.timings.origin_ttfb_msec/)).
+        - The network transfer time to the client.
+    example_value: |-
+      28
+    example_block: |-
+      # Matches requests where Cloudflare's edge processing time was greater than 500 milliseconds
+      cf.timings.edge_msec > 500
+
+  - name: cf.timings.origin_ttfb_msec
+    data_type: Integer
+    categories: [Request]
+    keywords: [request, timing, ttfb, performance, origin, latency]
+    summary: The round-trip time (RTT) between the Cloudflare global network and the origin server in milliseconds.
+    description: |-
+      This field provides insight into origin server latency. It represents the Time to First Byte (TTFB) from the perspective of the Cloudflare edge server.
+
+      This metric includes both the network RTT and the time the origin server spent handling the request.
+
+      If the request was served from the Cloudflare CDN cache and the origin server was not reached, the value of this field will be `0`.
+    example_value: |-
+      150
+    example_block: |-
+      # Matches requests where the origin response time (TTFB) was greater than 2 seconds:
+      cf.timings.origin_ttfb_msec > 2000
+
+  - name: cf.timings.worker_msec
+    data_type: Integer
+    categories: [Request]
+    keywords: [request, timing, workers, performance, latency]
+    summary: The time spent executing a Cloudflare Worker in milliseconds.
+    description: |-
+      This field provides the wall-clock time that a Cloudflare Worker spent handling the request, measured in milliseconds.
+
+      Use this field to identify slow Worker executions, set up alerts for performance regressions, or add Worker execution time as a request header using Transform Rules for downstream observability.
+
+      If the request did not invoke a Worker, the value of this field will be `0`.
+    example_value: |-
+      12
+    example_block: |-
+      # Matches requests where the Worker execution time exceeded 500 milliseconds
+      cf.timings.worker_msec > 500
 
   - name: cf.waf.content_scan.has_obj
     data_type: Boolean
@@ -979,7 +1169,7 @@ entries:
         visitor,
       ]
     plan_info_label: Enterprise add-on
-    summary: Indicates whether the file scanner was unable to scan all the content objects detected in the request.
+    summary: Indicates whether the file scanner was unable to scan any of the content objects detected in the request.
     description: |-
       Requires a Cloudflare Enterprise plan with [malicious uploads detection](/waf/detections/malicious-uploads/).
 
@@ -1066,6 +1256,51 @@ entries:
     example_block: |-
       # Check if requests to a specific endpoint contain any suspicious or infected content objects
       any(cf.waf.content_scan.obj_results[*] in {"suspicious" "infected"}) and http.request.uri.path eq "/upload"
+
+  - name: cf.waf.signature.request.categories
+    data_type: Array<String>
+    categories: [Request]
+    keywords: [request, cloudflare, waf, attack signature, category]
+    plan_info_label: Early Access
+    summary: An array of categories associated with attack signatures that matched the request.
+    description: |-
+      Available to customers with [Attack Signature Detection](/waf/detections/attack-signature-detection/) in Security Analytics and Custom Rules.
+
+      Contact your Cloudflare account team to request Early Access.
+    example_value: |-
+      ["sqli", "cve-2025-55182"]
+    example_block: |-
+      any(cf.waf.signature.request.categories[*] eq "sqli")
+
+  - name: cf.waf.signature.request.confidence
+    data_type: Array<String>
+    categories: [Request]
+    keywords: [request, cloudflare, waf, attack signature, confidence]
+    plan_info_label: Early Access
+    summary: An array of confidence values associated with attack signatures that matched the request.
+    description: |-
+      Supported values are `high` and `low`.
+
+      Available to customers with [Attack Signature Detection](/waf/detections/attack-signature-detection/) in Security Analytics and Custom Rules. Contact your Cloudflare account team to request Early Access.
+    example_value: |-
+      ["high"]
+    example_block: |-
+      any(cf.waf.signature.request.confidence[*] eq "high")
+
+  - name: cf.waf.signature.request.refs
+    data_type: Array<String>
+    categories: [Request]
+    keywords: [request, cloudflare, waf, attack signature, ref, rule id]
+    plan_info_label: Early Access
+    summary: An array containing up to 10 Refs for attack signatures that matched the request.
+    description: |-
+      Each Ref is the same value as the corresponding Cloudflare Managed Rules public Rule ID.
+
+      Available to customers with [Attack Signature Detection](/waf/detections/attack-signature-detection/) in Security Analytics and Custom Rules. Contact your Cloudflare account team to request Early Access.
+    example_value: |-
+      ["d68f8101f6e14e25aefcaea69c530a29"]
+    example_block: |-
+      any(cf.waf.signature.request.refs[*] eq "d68f8101f6e14e25aefcaea69c530a29")
 
   - name: cf.waf.score
     data_type: Number
@@ -1212,7 +1447,7 @@ entries:
     description: |-
       When a prompt is not present, the other LLM-related fields will have default values.
 
-      Requires a Cloudflare Enterprise plan. You must also enable [Firewall for AI](/waf/detections/firewall-for-ai/).
+      Requires a Cloudflare Enterprise plan. You must also enable [AI Security for Apps](/waf/detections/ai-security-for-apps/).
 
   - name: cf.llm.prompt.pii_detected
     data_type: Boolean
@@ -1223,7 +1458,7 @@ entries:
     description: |-
       Equivalent to checking if the [`cf.llm.prompt.pii_categories`](/ruleset-engine/rules-language/fields/reference/cf.llm.prompt.pii_categories/) field is not empty.
 
-      Requires a Cloudflare Enterprise plan. You must also enable [Firewall for AI](/waf/detections/firewall-for-ai/).
+      Requires a Cloudflare Enterprise plan. You must also enable [AI Security for Apps](/waf/detections/ai-security-for-apps/).
 
   - name: cf.llm.prompt.pii_categories
     data_type: Array<String>
@@ -1234,54 +1469,28 @@ entries:
     description: |-
       The possible values are the following:
 
-      Category                    | Description
-      ----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------
-      `CREDIT_CARD`               | Credit card number
-      `CRYPTO`                    | Crypto wallet number (currently only Bitcoin address)
-      `DATE_TIME`                 | Absolute or relative dates or periods or times smaller than a day
-      `EMAIL_ADDRESS`             | Email address
-      `IBAN_CODE`                 | International Bank Account Number (IBAN)
-      `IP_ADDRESS`                | Internet Protocol (IP) address
-      `NRP`                       | A person's nationality, religious or political group
-      `LOCATION`                  | Name of politically or geographically defined location (cities, provinces, countries, international regions, bodies of water, mountains)
-      `PERSON`                    | Full person name
-      `PHONE_NUMBER`              | Telephone number
-      `MEDICAL_LICENSE`           | Common medical license numbers
-      `URL`                       | Uniform Resource Locator (URL), used to locate a resource on the Internet
-      `US_BANK_NUMBER`            | US bank account number
-      `US_DRIVER_LICENSE`         | US driver license
-      `US_ITIN`                   | US Individual Taxpayer Identification Number (ITIN)
-      `US_PASSPORT`               | US passport number
-      `US_SSN`                    | US Social Security Number (SSN)
-      `UK_NHS`                    | UK NHS number
-      `UK_NINO`                   | UK National Insurance Number
-      `ES_NIF`                    | Spanish NIF number (personal tax ID)
-      `ES_NIE`                    | Spanish NIE number (foreigners ID card)
-      `IT_FISCAL_CODE`            | Italian personal tax ID code
-      `IT_DRIVER_LICENSE`         | Italian driver license number
-      `IT_VAT_CODE`               | Italian VAT code number
-      `IT_PASSPORT`               | Italian passport number
-      `IT_IDENTITY_CARD`          | Italian identity card number
-      `PL_PESEL`                  | Polish PESEL number
-      `SG_NRIC_FIN`               | National Registration Identification Card (Singapore)
-      `SG_UEN`                    | Unique Entity Number (for entities registered in Singapore)
-      `AU_ABN`                    | Australian Business Number (ABN)
-      `AU_ACN`                    | Australian Company Number (ACN)
-      `AU_TFN`                    | Australian tax file number (TFN)
-      `AU_MEDICARE`               | Medicare number (issued by Australian government)
-      `IN_PAN`                    | Indian Permanent Account Number (PAN)
-      `IN_AADHAAR`                | Individual identity number (issued by Indian government)
-      `IN_VEHICLE_REGISTRATION`   | Vehicle registration number (issued by Indian government)
-      `IN_VOTER`                  | Numeric voter ID (issued by Indian Election Commission)
-      `IN_PASSPORT`               | Indian Passport Number
-      `FI_PERSONAL_IDENTITY_CODE` | Finnish Personal Identity Code
+      Category         | Description
+      -----------------|------------------------------------------
+      `BANK_ACCOUNT`   | Bank account number
+      `CREDIT_CARD`    | Credit card number
+      `DATE_TIME`      | Date or time expression
+      `DRIVER_LICENSE` | Driver license number
+      `EMAIL_ADDRESS`  | Email address
+      `IP_ADDRESS`     | Internet Protocol (IPv4) address
+      `LOCATION`       | Physical location or address
+      `PASSPORT`       | Passport number
+      `PERSON`         | Full or partial name of an individual
+      `PHONE_NUMBER`   | Telephone number
+      `TAX_ID`         | Tax identification number
+      `US_SSN`         | US Social Security Number (SSN)
+      `URL`            | Uniform Resource Locator (URL), used to locate a resource on the Internet
 
-      The categories list is based on the [list of PII entities supported by Presidio](https://microsoft.github.io/presidio/supported_entities/). Presidio is the data protection and de-identification SDK used in Firewall for AI.
+      The categories are detected by an AI-based Named Entity Recognition (NER) model.
 
-      Requires a Cloudflare Enterprise plan. You must also enable [Firewall for AI](/waf/detections/firewall-for-ai/).
+      Requires a Cloudflare Enterprise plan. You must also enable [AI Security for Apps](/waf/detections/ai-security-for-apps/).
     example_block: |-
-      # Matches requests where PII categorized as "EMAIL_ADDRESS" or "IBAN_CODE" was detected:
-      (cf.llm.prompt.pii_detected and any(cf.llm.prompt.pii_categories[*] in {"EMAIL_ADDRESS" "IBAN_CODE"}))
+      # Matches requests where PII categorized as "EMAIL_ADDRESS" or "BANK_ACCOUNT" was detected:
+      (cf.llm.prompt.pii_detected and any(cf.llm.prompt.pii_categories[*] in {"EMAIL_ADDRESS" "BANK_ACCOUNT"}))
 
   - name: cf.llm.prompt.unsafe_topic_detected
     data_type: Boolean
@@ -1292,7 +1501,7 @@ entries:
     description: |-
       Equivalent to checking if the [`cf.llm.prompt.unsafe_topic_categories`](/ruleset-engine/rules-language/fields/reference/cf.llm.prompt.unsafe_topic_categories/) field is not empty.
 
-      Requires a Cloudflare Enterprise plan. You must also enable [Firewall for AI](/waf/detections/firewall-for-ai/).
+      Requires a Cloudflare Enterprise plan. You must also enable [AI Security for Apps](/waf/detections/ai-security-for-apps/).
 
   - name: cf.llm.prompt.unsafe_topic_categories
     data_type: Array<String>
@@ -1305,23 +1514,24 @@ entries:
 
       | Value | Category name             | Description                                                                                                       |
       | ----- | ------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-      | `S1`  | Violent Crimes            | Violent crimes against people or animals.                                                                         |
-      | `S2`  | Non-Violent Crimes        | Non-violent offenses such as fraud, theft, drug creation, or hacking.                                             |
-      | `S3`  | Sex-Related Crimes        | Sex-related crimes, including trafficking, assault, and harassment.                                               |
-      | `S4`  | Child Sexual Exploitation | Sexual exploitation of children.                                                                                  |
+      | `S1`  | Violent crimes            | Violent crimes against people or animals.                                                                         |
+      | `S2`  | Non-violent crimes        | Non-violent offenses such as fraud, theft, drug creation, or hacking.                                             |
+      | `S3`  | Sex-related crimes        | Sex-related crimes, including trafficking, assault, and harassment.                                               |
+      | `S4`  | Child sexual exploitation | Sexual exploitation of children.                                                                                  |
       | `S5`  | Defamation                | False statements that are likely to damage a living person's reputation.                                          |
-      | `S6`  | Specialized Advice        | Specialized financial, medical, or legal advice, or misrepresent dangerous things as safe.                        |
+      | `S6`  | Specialized advice        | Specialized financial, medical, or legal advice, or misrepresent dangerous things as safe.                        |
       | `S7`  | Privacy                   | Sensitive, nonpublic personal information that could endanger an individual.                                      |
-      | `S8`  | Intellectual Property     | Violate a third party's intellectual property rights.                                                             |
-      | `S9`  | Indiscriminate Weapons    | Creation of indiscriminate weapons like chemical, biological, or nuclear arms.                                    |
+      | `S8`  | Intellectual property     | Violate a third party's intellectual property rights.                                                             |
+      | `S9`  | Indiscriminate weapons    | Creation of indiscriminate weapons like chemical, biological, or nuclear arms.                                    |
       | `S10` | Hate                      | Demean or dehumanize people based on their race, religion, sexual orientation, or other personal characteristics. |
-      | `S11` | Suicide & Self-Harm       | Encourage or endorse suicide, self-injury, or disordered eating.                                                  |
-      | `S12` | Sexual Content            | Erotic content.                                                                                                   |
+      | `S11` | Suicide and self-harm     | Encourage or endorse suicide, self-injury, or disordered eating.                                                  |
+      | `S12` | Sexual content            | Erotic content.                                                                                                   |
       | `S13` | Elections                 | False information about the time, place, or manner of voting in elections.                                        |
+      | `S14` | Code interpreter abuse    | Misuse of code execution capabilities.                                                                            |
 
-      Requires a Cloudflare Enterprise plan. You must also enable [Firewall for AI](/waf/detections/firewall-for-ai/).
+      Requires a Cloudflare Enterprise plan. You must also enable [AI Security for Apps](/waf/detections/ai-security-for-apps/).
     example_block: |-
-      # Matches requests where an unsafe topic categorized as "S2" (Non-Violent Crimes) or "S10" (Hate) was detected in the LLM prompt:
+      # Matches requests where an unsafe topic categorized as "S2" (Non-violent crimes) or "S10" (Hate) was detected in the LLM prompt:
       (cf.llm.prompt.unsafe_topic_detected and any(cf.llm.prompt.unsafe_topic_categories[*] in {"S2" "S10"}))
 
   - name: cf.llm.prompt.injection_score
@@ -1336,7 +1546,35 @@ entries:
 
       The special score `100` indicates that Cloudflare did not score the request.
 
-      Requires a Cloudflare Enterprise plan. You must also enable [Firewall for AI](/waf/detections/firewall-for-ai/).
+      Requires a Cloudflare Enterprise plan. You must also enable [AI Security for Apps](/waf/detections/ai-security-for-apps/).
+
+  - name: cf.llm.prompt.token_count
+    data_type: Number
+    categories: [Request]
+    keywords: [request, cloudflare, ai, client, visitor]
+    plan_info_label: Enterprise
+    summary: An estimated token count for the LLM prompt in the request.
+    description: |-
+      The count is calculated using a general-purpose tokenizer and may not exactly match the count reported by your LLM provider.
+
+      Requires a Cloudflare Enterprise plan. You must also enable [AI Security for Apps](/waf/detections/ai-security-for-apps/).
+    example_block: |-
+      # Matches requests where the estimated token count exceeds 4,000:
+      (cf.llm.prompt.token_count gt 4000)
+
+  - name: cf.llm.prompt.custom_topic_categories
+    data_type: Map<Number>
+    categories: [Request]
+    keywords: [request, cloudflare, ai, client, visitor]
+    plan_info_label: Enterprise
+    summary: A map of custom topic labels to relevance scores (1–99) for the LLM prompt in the request.
+    description: |-
+      Lower scores indicate the prompt is more relevant to that topic. Only populated when [custom topics](/waf/detections/ai-security-for-apps/unsafe-topics/#custom-topics) are configured.
+
+      Requires a Cloudflare Enterprise plan. You must also enable [AI Security for Apps](/waf/detections/ai-security-for-apps/).
+    example_block: |-
+      # Matches requests where the prompt is highly relevant to the "competitors" custom topic:
+      (cf.llm.prompt.custom_topic_categories["competitors"] lt 30)
 
   - name: cf.worker.upstream_zone
     data_type: String
@@ -1345,20 +1583,6 @@ entries:
     summary: Identifies whether a request comes from a worker or not.
     description: |-
       When a request comes from a worker, this field will hold the name of the zone for that worker. Otherwise, `cf.worker.upstream_zone` is empty.
-
-  - name: cf.bot_management.corporate_proxy
-    data_type: Boolean
-    categories: [Request, Bots]
-    keywords: [request, bots, proxy, client, visitor]
-    plan_info_label: Enterprise add-on
-    summary: Indicates whether the incoming request comes from an identified Enterprise-only cloud-based corporate proxy or secure web gateway.
-    description: |-
-      Requires a Cloudflare Enterprise plan with [Bot Management](/bots/plans/bm-subscription/) enabled.
-    example_block: |-
-      not cf.bot_management.verified_bot
-      and not cf.bot_management.static_resource
-      and not cf.bot_management.corporate_proxy
-      and cf.bot_management.score lt 30
 
   - name: http.request.jwt.claims.aud
     data_type: Map<Array<String>>
@@ -1780,7 +2004,7 @@ entries:
     data_type: String
     categories: [Request, Body, Raw fields]
     keywords: [request, body, raw, client, visitor]
-    plan_info_label: Enterprise add-on
+    plan_info_label: Enterprise
     summary: The unaltered HTTP request body.
     description: |-
       When the value of [`http.request.body.truncated`](/ruleset-engine/rules-language/fields/reference/http.request.body.truncated/) is `true`, the return value may be truncated.
@@ -1789,35 +2013,35 @@ entries:
       - **Whitespace**: Preserved
       - **Non-ASCII**: Preserved
 
-      Requires a Cloudflare Enterprise plan with a paid add-on.
+      Requires a Cloudflare Enterprise plan.
 
   - name: http.request.body.truncated
     data_type: Boolean
     categories: [Request, Body]
     keywords: [request, body, client, visitor]
-    plan_info_label: Enterprise add-on
+    plan_info_label: Enterprise
     summary: Indicates whether the HTTP request body is truncated.
     description: |-
       When `true`, `http.request.body.*` fields may not contain all of the HTTP request body.
 
-      Requires a Cloudflare Enterprise plan with a paid add-on.
+      Requires a Cloudflare Enterprise plan.
 
   - name: http.request.body.size
     data_type: Number
     categories: [Request, Body]
     keywords: [request, body, client, visitor]
-    plan_info_label: Enterprise add-on
+    plan_info_label: Enterprise
     summary: The total size of the HTTP request body (in bytes).
     description: |-
       This field may have a value larger than the one returned by `len(http.request.body.raw)`, since the [`http.request.body.raw`](/ruleset-engine/rules-language/fields/reference/http.request.body.raw/) field only considers the request body up to a maximum size that varies according to your Cloudflare plan.
 
-      Requires a Cloudflare Enterprise plan with a paid add-on.
+      Requires a Cloudflare Enterprise plan.
 
   - name: http.request.body.form
     data_type: Map<Array<String>>
     categories: [Request, Body]
     keywords: [request, body, form, client, visitor]
-    plan_info_label: Enterprise add-on
+    plan_info_label: Enterprise
     summary: The HTTP request body of a form represented as a Map (or associative array).
     description: |-
       Populated when the `Content-Type` header is `application/x-www-form-urlencoded`.
@@ -1832,7 +2056,7 @@ entries:
       - **Whitespace**: Preserved
       - **Non-ASCII**: Preserved
 
-      Requires a Cloudflare Enterprise plan with a paid add-on.
+      Requires a Cloudflare Enterprise plan.
     example_value: |-
       {username": ["admin"]}
     example_block: |-
@@ -1842,7 +2066,7 @@ entries:
     data_type: Array<String>
     categories: [Request, Body]
     keywords: [request, body, form, client, visitor]
-    plan_info_label: Enterprise add-on
+    plan_info_label: Enterprise
     summary: The names of the form fields in an HTTP request.
     description: |-
       Populated when the `Content-Type` header is `application/x-www-form-urlencoded`.
@@ -1857,7 +2081,7 @@ entries:
       - **Whitespace**: Preserved
       - **Non-ASCII**: Preserved
 
-      Requires a Cloudflare Enterprise plan with a paid add-on.
+      Requires a Cloudflare Enterprise plan.
     example_value: |-
       ["username"]
     example_block: |-
@@ -1867,7 +2091,7 @@ entries:
     data_type: Array<String>
     categories: [Request, Body]
     keywords: [request, body, form, client, visitor]
-    plan_info_label: Enterprise add-on
+    plan_info_label: Enterprise
     summary: The values of the form fields in an HTTP request.
     description: |-
       Populated when the `Content-Type` header is `application/x-www-form-urlencoded`.
@@ -1882,7 +2106,7 @@ entries:
       - **Whitespace**: Preserved
       - **Non-ASCII**: Preserved
 
-      Requires a Cloudflare Enterprise plan with a paid add-on.
+      Requires a Cloudflare Enterprise plan.
     example_value: |-
       ["admin"]
     example_block: |-
@@ -1904,10 +2128,10 @@ entries:
     data_type: Map<Array<String>>
     categories: [Request, Body]
     keywords: [request, body, client, visitor]
-    plan_info_label: Enterprise add-on
+    plan_info_label: Enterprise
     summary: A Map (or associative array) representation of multipart names to multipart values in the request body.
     description: |-
-      Requires a Cloudflare Enterprise plan with a paid add-on.
+      Requires a Cloudflare Enterprise plan.
     example_value: |-
       {"username": ["alice_doe"], "role": ["editor"], "picture": [<binary_content_of_file>]}
     example_block: |-
@@ -1917,10 +2141,10 @@ entries:
     data_type: Array<Array<String>>
     categories: [Request, Body]
     keywords: [request, body, client, visitor]
-    plan_info_label: Enterprise add-on
+    plan_info_label: Enterprise
     summary: List of multipart names for every part in the multipart body.
     description: |-
-      Requires a Cloudflare Enterprise plan with a paid add-on.
+      Requires a Cloudflare Enterprise plan.
     example_value: |-
       [["username"], ["picture"]]
     example_block: |-
@@ -1930,10 +2154,10 @@ entries:
     data_type: Array<String>
     categories: [Request, Body]
     keywords: [request, body, client, visitor]
-    plan_info_label: Enterprise add-on
+    plan_info_label: Enterprise
     summary: List of multipart values for every part in the multipart body.
     description: |-
-      Requires a Cloudflare Enterprise plan with a paid add-on.
+      Requires a Cloudflare Enterprise plan.
     example_value: |-
       ["alice_doe", <binary_content_of_file>]
     example_block: |-
@@ -1943,10 +2167,10 @@ entries:
     data_type: Array<Array<String>>
     categories: [Request, Body]
     keywords: [request, body, client, visitor]
-    plan_info_label: Enterprise add-on
+    plan_info_label: Enterprise
     summary: List of `Content-Type` headers for each part in the multipart body.
     description: |-
-      Requires a Cloudflare Enterprise plan with a paid add-on.
+      Requires a Cloudflare Enterprise plan.
     example_value: |-
       [["text/plain"], ["image/jpeg"]]
     example_block: |-
@@ -1956,10 +2180,10 @@ entries:
     data_type: Array<Array<String>>
     categories: [Request, Body]
     keywords: [request, body, client, visitor]
-    plan_info_label: Enterprise add-on
+    plan_info_label: Enterprise
     summary: List of `Content-Disposition` headers for each part in the multipart body.
     description: |-
-      Requires a Cloudflare Enterprise plan with a paid add-on.
+      Requires a Cloudflare Enterprise plan.
     example_value: |-
       [["form-data; name=\"username\""], ["form-data; name=\"picture\""]]
     example_block: |-
@@ -1969,10 +2193,10 @@ entries:
     data_type: Array<Array<String>>
     categories: [Request, Body]
     keywords: [request, body, client, visitor]
-    plan_info_label: Enterprise add-on
+    plan_info_label: Enterprise
     summary: List of `Content-Transfer-Encoding` headers for each part in the multipart body.
     description: |-
-      Requires a Cloudflare Enterprise plan with a paid add-on.
+      Requires a Cloudflare Enterprise plan.
     example_value: |-
       [["quoted-printable"], ["base64"]]
     example_block: |-
@@ -1982,10 +2206,10 @@ entries:
     data_type: Array<Array<String>>
     categories: [Request, Body]
     keywords: [request, body, client, visitor]
-    plan_info_label: Enterprise add-on
+    plan_info_label: Enterprise
     summary: List of filenames for each part in the multipart body.
     description: |-
-      Requires a Cloudflare Enterprise plan with a paid add-on.
+      Requires a Cloudflare Enterprise plan.
     example_value: |-
       [["file1.txt"], ["photo.jpg"]]
     example_block: |-

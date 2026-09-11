@@ -1,6 +1,8 @@
 ---
 pcx_content_type: configuration
 title: Render
+products:
+  - cloudflare-for-saas
 head:
   - tag: title
     content: Render | Provider guides
@@ -9,15 +11,9 @@ description: Learn how to configure your Enterprise zone with Render.
 
 import { Render } from "~/components";
 
-<Render
-	file="provider-guide-intro"
-	product="cloudflare-for-platforms"
-	params={{
-		providerName: "Render",
-		providerUrl: "https://render.com",
-		providerAssets: "web services and static sites",
-	}}
-/>
+Cloudflare partners with [Render](https://render.com) to provide Render customers’ web services and static sites with Cloudflare’s performance and security benefits.
+
+If you use Render and also have a Cloudflare plan, you can use your own Cloudflare zone to proxy web traffic to your zone first, then Render's (the SaaS Provider) zone second. This configuration option is called [O2O](/cloudflare-for-platforms/cloudflare-for-saas/saas-customers/how-it-works/).
 
 ## Benefits
 
@@ -84,4 +80,4 @@ If you encounter SSL errors, check if you have a `CAA` record.
 
 If you have a `CAA` record, verify that it permits SSL certificates to be issued by Google Trust Services (`pki.goog`).
 
-For more details, refer to [CAA records](/ssl/edge-certificates/troubleshooting/caa-records/#what-caa-records-are-added-by-cloudflare).
+For more details, refer to [CAA records](/ssl/edge-certificates/caa-records/).

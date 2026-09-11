@@ -6,7 +6,9 @@ sidebar:
 head:
   - tag: title
     content: Get started with Workers Analytics Engine
-
+description: Set up and access Network Analytics.
+products:
+  - workers-analytics-engine
 ---
 
 import { DirectoryListing, WranglerConfig } from "~/components"
@@ -21,10 +23,15 @@ You do not need to manually create a dataset in the Cloudflare dashboard. Worker
 
 <WranglerConfig>
 
-```toml
-[[analytics_engine_datasets]]
-binding = "<BINDING_NAME>"
-dataset = "<DATASET_NAME>"
+```jsonc
+{
+	"analytics_engine_datasets": [
+		{
+			"binding": "<BINDING_NAME>",
+			"dataset": "<DATASET_NAME>"
+		}
+	]
+}
 ```
 
 </WranglerConfig>

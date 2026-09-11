@@ -1,6 +1,8 @@
 ---
 pcx_content_type: configuration
 title: BigCommerce
+products:
+  - cloudflare-for-saas
 head:
   - tag: title
     content: BigCommerce | Provider guides
@@ -11,7 +13,7 @@ import { Render } from "~/components";
 
 <Render
 	file="provider-guide-intro"
-	params={{ providerName: "BigCommerce" }}
+	params={{ providerName: "BigCommerce", providerAssets: "websites" }}
 	product="cloudflare-for-platforms"
 />
 
@@ -20,7 +22,7 @@ import { Render } from "~/components";
 <Render
 	file="provider-guide-benefits"
 	product="cloudflare-for-platforms"
-	params={{ providerName: "BigCommerce" }}
+	params={{ providerName: "BigCommerce", providerAssets: "environment" }}
 />
 
 ## How it works

@@ -1,8 +1,11 @@
 ---
 pcx_content_type: how-to
 title: Configure CORS
+description: Set up Cross-Origin Resource Sharing (CORS) policies on R2 buckets for browser access.
 sidebar:
   order: 3
+products:
+  - r2
 ---
 
 import {DashButton} from "~/components";
@@ -36,6 +39,8 @@ Next, [add a CORS policy](#add-cors-policies-from-the-dashboard) to your bucket 
 [Presigned URLs](/r2/api/s3/presigned-urls/) allow temporary access to perform specific actions on your bucket without exposing your credentials. While presigned URLs handle authentication, you still need to configure CORS when making requests from a browser.
 
 When a browser makes a request to a presigned URL on a different origin, the browser enforces CORS. Without a CORS policy, browser-based uploads and downloads using presigned URLs will fail, even though the presigned URL itself is valid.
+
+Expired presigned URLs return a `403` `ExpiredRequest` response. R2 does not include CORS response headers on expired presigned URL responses, so browser JavaScript cannot read the error body. Refresh presigned URLs before they expire, or route requests through your application server if the browser needs to handle expiration errors directly.
 
 To enable browser-based access with presigned URLs:
 

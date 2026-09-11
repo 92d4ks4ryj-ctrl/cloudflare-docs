@@ -1,9 +1,12 @@
 ---
 pcx_content_type: how-to
 title: Start from scratch
-noindex: true
+description: Create a new Workers Sites project from scratch with Wrangler.
+canonical: /workers/static-assets/
 sidebar:
   order: 2
+products:
+  - workers
 ---
 
 import { Render, WranglerConfig } from "~/components";
@@ -25,7 +28,7 @@ This guide shows how to quickly start a new Workers Sites project from scratch.
 
 3. Run `npm install` to install all dependencies.
 
-4. You can preview your site by running the [`wrangler dev`](/workers/wrangler/commands/#dev) command:
+4. You can preview your site by running the [`wrangler dev`](/workers/wrangler/commands/general/#dev) command:
 
    ```sh
    wrangler dev
@@ -53,8 +56,11 @@ The template project contains the following files and directories:
 
   <WranglerConfig>
 
-  ```toml
-  name = "my-site"
+  ```jsonc
+  {
+    "$schema": "./node_modules/wrangler/config-schema.json",
+    "name": "my-site"
+  }
   ```
 
   </WranglerConfig>
@@ -63,8 +69,10 @@ The template project contains the following files and directories:
 
   <WranglerConfig>
 
-  ```toml
-  compatibility_date = "yyyy-mm-dd"
+  ```jsonc
+  {
+    "compatibility_date": "yyyy-mm-dd"
+  }
   ```
 
   </WranglerConfig>
@@ -73,8 +81,10 @@ The template project contains the following files and directories:
 
   <WranglerConfig>
 
-  ```toml
-  route = "https://example.com/*"
+  ```jsonc
+  {
+    "route": "https://example.com/*"
+  }
   ```
 
   </WranglerConfig>

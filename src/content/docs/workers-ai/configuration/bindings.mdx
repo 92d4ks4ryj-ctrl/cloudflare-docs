@@ -1,9 +1,11 @@
 ---
 pcx_content_type: configuration
 title: Workers Bindings
+description: Create an AI binding to connect your Cloudflare Worker to Workers AI.
 sidebar:
   order: 1
-
+products:
+  - workers-ai
 ---
 
 import { Type, MetaInfo, WranglerConfig } from "~/components";
@@ -18,9 +20,12 @@ To bind Workers AI to your Worker, add the following to the end of your Wrangler
 
 <WranglerConfig>
 
-```toml
-[ai]
-binding = "AI" # i.e. available in your Worker on env.AI
+```jsonc
+{
+	"ai": {
+		"binding": "AI" // i.e. available in your Worker on env.AI
+	}
+}
 ```
 
 </WranglerConfig>

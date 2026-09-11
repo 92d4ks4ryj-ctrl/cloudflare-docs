@@ -1,8 +1,11 @@
 ---
 pcx_content_type: how-to
 title: 1. Migrate webpack projects
+description: Migrate webpack-based Workers projects from Wrangler v1 to v2 by ejecting your bundler configuration.
 sidebar:
   order: 2
+products:
+  - workers
 ---
 
 import { WranglerConfig, PackageManagers } from "~/components";
@@ -105,10 +108,12 @@ Remove the `type` and `webpack_config` keys from your Wrangler file, as they are
 
 <WranglerConfig>
 
-```toml
-# Remove these!
-type = "webpack"
-webpack_config = "webpack.config.js"
+```jsonc
+{
+	// Remove these!
+	"type": "webpack",
+	"webpack_config": "webpack.config.js"
+}
 ```
 
 </WranglerConfig>
@@ -119,11 +124,13 @@ Wrangler no longer has any knowledge of how to build your Worker. You will need 
 
 <WranglerConfig>
 
-```toml
-main = "./worker/script.js" # by default, or whatever file webpack outputs
-[build]
-command = "npm run build" # or "yarn build"
-# ...
+```jsonc
+{
+	"main": "./worker/script.js", // by default, or whatever file webpack outputs
+	"build": {
+		"command": "npm run build" // or "yarn build"
+	}
+}
 ```
 
 </WranglerConfig>

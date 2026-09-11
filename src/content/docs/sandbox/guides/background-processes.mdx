@@ -4,11 +4,19 @@ pcx_content_type: how-to
 sidebar:
   order: 3
 description: Start and manage long-running services and applications.
+products:
+  - sandbox
 ---
 
 import { TypeScriptExample } from "~/components";
 
 This guide shows you how to start, monitor, and manage long-running background processes in the sandbox.
+
+:::note[Coming soon: Sandbox SDK 1.0]
+This page documents `startProcess` and related helpers on today's stable `@cloudflare/sandbox` package.
+
+In the **1.0 preview** (`@next`), long-running work uses the same `exec(argv)` process handle as short commands. Refer to [Process execution](/sandbox/1-0-preview/processes/) or [migrate to the preview](/sandbox/1-0-preview/migrate/).
+:::
 
 ## When to use background processes
 
@@ -140,9 +148,11 @@ console.log('Logs:', logs);
 
 ## Stop processes
 
+Stop background processes and their children:
+
 <TypeScriptExample>
 ```
-// Stop specific process
+// Stop specific process (terminates entire process tree)
 await sandbox.killProcess(server.id);
 
 // Force kill if needed
@@ -150,6 +160,22 @@ await sandbox.killProcess(server.id, 'SIGKILL');
 
 // Stop all processes
 await sandbox.killAllProcesses();
+```
+</TypeScriptExample>
+
+`killProcess()` terminates the specified process and all child processes it spawned. This ensures that processes running in the background do not leave orphaned child processes when terminated.
+
+For example, if your process spawns multiple worker processes or background tasks, `killProcess()` will clean up the entire process tree:
+
+<TypeScriptExample>
+```
+// This script spawns multiple child processes
+const batch = await sandbox.startProcess(
+  'bash -c "process1 & process2 & process3 & wait"'
+);
+
+// killProcess() terminates the bash process AND all three child processes
+await sandbox.killProcess(batch.id);
 ```
 </TypeScriptExample>
 

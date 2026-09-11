@@ -1,22 +1,24 @@
 ---
 title: Setup
 pcx_content_type: tutorial
+difficulty: Intermediate
+products:
+  - dns
 sidebar:
   order: 1
 head:
   - tag: title
-    content: Set up a partial (CNAME) zone
+    content: Set up a partial zone (CNAME setup)
 description: >-
-  A partial (CNAME) setup allows you to use Cloudflare's reverse proxy while maintaining your primary and authoritative DNS provider.
+  A CNAME setup (also known as partial) allows you to use Cloudflare's reverse proxy while maintaining your primary and authoritative DNS provider.
 ---
 
 import { Details, Render, GlossaryTooltip, Steps, Tabs, TabItem, APIRequest } from "~/components";
 
 <Render file="partial-setup-definition" product="dns" />
 
-:::note
-A partial setup is only available to customers on a Business or Enterprise plan.
-Partial setups are not supported on Cloudflare Registrar domains.
+:::note[Availability]
+A CNAME setup (partial) is only available to customers on a Business or Enterprise plan. Partial setups are not supported on Cloudflare Registrar domains.
 :::
 
 ---
@@ -75,6 +77,10 @@ If you are adding a zone for the first time via API you can add it directly with
 
 <Render file="partial-setup-verification-record" product="dns" />
 
+:::note
+If your zone stays in **Pending Nameserver Update** status after adding the verification TXT record, confirm your authoritative DNS provider serves the record (for example, with `dig TXT cloudflare-verify.<YOUR_DOMAIN>` or a web-based tool such as [digwebinterface.com](https://www.digwebinterface.com/) or [whatsmydns.net](https://www.whatsmydns.net/)). For the full activation troubleshooting flow, refer to [Zone stuck in Pending Nameserver Update](/dns/zone-setups/troubleshooting/pending-nameservers/).
+:::
+
 ## 3. Add DNS records
 
 <Steps>
@@ -101,4 +107,4 @@ If you are adding a zone for the first time via API you can add it directly with
 
 ## Other record types
 
-If you are preparing a conversion from partial to full setup, or if you have a more specific use case, you can use the [Create DNS Record](/api/resources/dns/subresources/records/methods/create/) API endpoint to create DNS records of any supported type.
+If you are preparing a conversion from CNAME setup (partial) to primary setup (full), or if you have a more specific use case, you can use the [Create DNS Record](/api/resources/dns/subresources/records/methods/create/) API endpoint to create DNS records of any supported type.

@@ -1,6 +1,6 @@
 ---
 title: Investigate your Workers with the Query Builder in the new Observability dashboard
-description: Workers Observability now offers a Query Builder to help developers construct structured queries to investigate their telemtry data.
+description: Workers Observability now offers a Query Builder to help developers construct structured queries to investigate their telemetry data.
 products:
   - workers
 date: 2025-04-09
@@ -39,12 +39,15 @@ The API documents three endpoints: list the keys in the telemetry dataset, run a
 Visit the [docs](/workers/observability/query-builder) to learn more about the capabilities and methods exposed by the Query Builder. Start using Workers Logs and the Query Builder today by enabling observability for your Workers:
 
 <WranglerConfig>
-	```toml
-	[observability]
-	enabled = true
-
-	[observability.logs]
-	invocation_logs = true
-	head_sampling_rate = 1 # optional. default = 1.
+	```jsonc
+	{
+		"observability": {
+			"enabled": true,
+			"logs": {
+				"invocation_logs": true,
+				"head_sampling_rate": 1 // optional. default = 1.
+			}
+		}
+	}
 	```
 </WranglerConfig>

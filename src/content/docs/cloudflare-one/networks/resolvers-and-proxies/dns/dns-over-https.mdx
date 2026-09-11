@@ -1,13 +1,18 @@
 ---
 pcx_content_type: how-to
+description: DNS over HTTPS (DoH) in Zero Trust networking.
+products:
+  - cloudflare-one
 title: DNS over HTTPS (DoH)
+tags:
+  - DNS
 sidebar:
   order: 3
 ---
 
 import { Details, GlossaryTooltip, Render } from "~/components";
 
-With Cloudflare Gateway, you can filter DNS over HTTPS (DoH) requests by [DNS location](/cloudflare-one/networks/resolvers-and-proxies/dns/locations/) or by user without needing to install the WARP client on your devices.
+With Cloudflare Gateway, you can filter DNS over HTTPS (DoH) requests by [DNS location](/cloudflare-one/networks/resolvers-and-proxies/dns/locations/) or by user without needing to install the Cloudflare One Client on your devices.
 
 Location-based policies require that you send DNS requests to a [location-specific DoH endpoint](#filter-doh-requests-by-location), while identity-based policies require that requests include a [user-specific DoH token](#filter-doh-requests-by-user).
 
@@ -135,12 +140,13 @@ Save the service token's `client_id`, `client_secret`, and `id`.
 
 <Details header="Example response">
 
-```json null {3,4,7}
+```json null {3,4,8}
 {
 	"result": {
 		"client_id": "88bf3b6d86161464f6509f7219099e57.access",
-		"client_secret": "bdd31cbc4dec990953e39163fbbb194c93313ca9f0a6e420346af9d326b1d2a5",
+		"client_secret": "cfast_EqN8f9vx3sKOSY4mwCMCbZYb02L4OvfAkacLAqTZ63a435a7",
 		"created_at": "2022-06-09T01:59:17Z",
+		"enabled": true,
 		"expires_at": "2023-06-09T01:59:17Z",
 		"id": "f174e90a-fafe-4643-bbbc-4a0ed4fc8415",
 		"name": "ACME Corporation service token",
@@ -306,4 +312,4 @@ If the site is blocked and you have turned on the [block page](/cloudflare-one/r
 
 </Details>
 
-You can verify that the request was associated with the correct user email by checking your [Gateway DNS logs](/cloudflare-one/insights/logs/gateway-logs/). To filter these requests, build a DNS policy using any of the Gateway [identity-based selectors](/cloudflare-one/traffic-policies/identity-selectors/).
+You can verify that the request was associated with the correct user email by checking your [Gateway DNS logs](/cloudflare-one/insights/logs/dashboard-logs/gateway-logs/). To filter these requests, build a DNS policy using any of the Gateway [identity-based selectors](/cloudflare-one/traffic-policies/identity-selectors/).

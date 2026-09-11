@@ -3,6 +3,8 @@ pcx_content_type: how-to
 title: Nuxt
 head: []
 description: Web framework making Vue.js-based development simple and powerful.
+products:
+  - pages
 ---
 
 import {
@@ -11,7 +13,6 @@ import {
 	TabItem,
 	Tabs,
 	ResourcesBySelector,
-	ExternalResources,
 	PackageManagers,
 	YouTube,
 } from "~/components";
@@ -74,17 +75,13 @@ git push -u origin main
 
 ### Create a Pages project
 
-<Render
-	file="framework-guides/learn-more"
-	product="pages"
-	params={{ name: "Nuxt.js" }}
-/>
+<Render file="deploy-to-pages-steps-no-preset" product="pages" />
 
 <PagesBuildPreset framework="nuxt-js" />
 
 Optionally, you can customize the **Project name** field. It defaults to the GitHub repository's name, but it does not need to match. The **Project name** value is assigned as your `*.pages.dev` subdomain.
 
-4. After completing configuration, select the **Save and Deploy**.
+7. After completing configuration, select the **Save and Deploy**.
 
 Review your first deploy pipeline in progress. Pages installs all dependencies and builds the project as specified. Cloudflare Pages will automatically rebuild your project and deploy it on every new pushed commit.
 
@@ -110,7 +107,7 @@ This module is powered by the [`getPlatformProxy` helper function](/workers/wran
 
 :::note
 
-`wrangler.toml` is currently **only** used for local development. Bindings specified in it are not available remotely.
+Wrangler configuration is used primarily for local development. Bindings specified in it are not available remotely, unless they are created as [remote bindings](/workers/local-development/#remote-bindings).
 
 :::
 
@@ -176,17 +173,3 @@ export default defineEventHandler(({ context }) => {
 	product="pages"
 	params={{ one: "Nuxt" }}
 />
-
-## Related resources
-
-### Tutorials
-
-For more tutorials involving Nuxt, refer to the following resources:
-
-<ResourcesBySelector tags={["Nuxt"]} types={["tutorial"]} />
-
-### Demo apps
-
-For demo applications using Nuxt, refer to the following resources:
-
-<ExternalResources tags={["Nuxt"]} type="apps" />

@@ -1,6 +1,9 @@
 ---
 title: Configure a rule with the Skip action
 pcx_content_type: how-to
+description: Use the Skip action to bypass security features for matching requests.
+products:
+  - waf
 sidebar:
   order: 5
 head:
@@ -12,31 +15,13 @@ import { TabItem, Tabs, Steps, DashButton } from "~/components";
 
 Use the _Skip_ action in a custom rule to skip one or more security features. A rule configured with the _Skip_ action is also known as a skip rule.
 
+Skip rules allow specific requests to bypass security features that would otherwise block or challenge them. Use skip rules when legitimate traffic matches a security rule unintentionally. For example, to allow a trusted API client through [rate limiting rules](/waf/rate-limiting-rules/), or to exempt an internal monitoring service from [Managed Rules](/waf/managed-rules/).
+
+You can skip [rate limiting rules](/waf/rate-limiting-rules/), [Managed Rules](/waf/managed-rules/), [Super Bot Fight Mode](/bots/get-started/super-bot-fight-mode/) rules, and several other security products. However, you cannot skip [Bot Fight Mode](/bots/get-started/bot-fight-mode/) (available on the Free plan).
+
 For more information on the available options, refer to [Available skip options](/waf/custom-rules/skip/options/).
 
-<Tabs syncKey="dashNewNav"> <TabItem label="Old dashboard">
-
-<Steps>
-
-1. Log in to the [Cloudflare dashboard](https://dash.cloudflare.com), and select your account and domain.
-
-2. Go to **Security** > **WAF** > **Custom rules**.
-
-3. [Create a custom rule](/waf/custom-rules/create-dashboard/) by selecting **Create rule**, or edit an existing custom rule.
-
-4. Define the rule name and the rule expression.
-
-5. Under **Choose action**, select _Skip_ from the dropdown.
-
-   ![Available Skip action options when configuring a custom rule](~/assets/images/waf/custom-rules/skip-action-options.png)
-
-6. Configure the desired [skip options](/waf/custom-rules/skip/options/).
-
-7. Save your changes.
-
-</Steps>
-
-</TabItem> <TabItem label="New dashboard" icon="rocket">
+<Tabs syncKey="dashNewNav"> <TabItem label="Dashboard" icon="rocket">
 
 <Steps>
 

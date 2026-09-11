@@ -1,5 +1,8 @@
 ---
 pcx_content_type: concept
+description: Health monitors that check origin server availability.
+products:
+  - load-balancing
 title: Monitors
 sidebar:
   order: 5
@@ -46,6 +49,14 @@ When you [attach a monitor to a pool](/load-balancing/monitors/create-monitor/#c
 ### Configurations
 
 <Render file="monitor-health-check-regions-options" product="load-balancing" />
+
+---
+
+## IPv4 and IPv6 probe behavior
+
+Health monitor probes use IPv4 by default. IPv6 probes are only sent if the endpoint address has no `A` records (only `AAAA`). Each endpoint receives one probe per interval — Cloudflare does not probe both IPv4 and IPv6 for the same endpoint.
+
+To enforce probing over IPv6, set the endpoint address to either a raw IPv6 address or a hostname that only has `AAAA` records.
 
 ---
 

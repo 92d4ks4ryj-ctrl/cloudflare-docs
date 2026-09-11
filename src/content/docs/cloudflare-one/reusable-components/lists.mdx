@@ -1,5 +1,8 @@
 ---
 pcx_content_type: how-to
+description: Lists in Zero Trust.
+products:
+  - cloudflare-one
 title: Lists
 sidebar:
   order: 1
@@ -11,6 +14,10 @@ With Cloudflare One, you can create lists of URLs, hostnames, or other entries t
 
 Before creating a list, make note of the [limitations](#limitations).
 
+:::note
+The lists described in this page are not the same as [custom lists](/waf/tools/lists/custom-lists/) defined at the account level. The two types of lists support different data types and have different validation rules.
+:::
+
 ## List types
 
 Lists can contain a single type of data each. Supported data types include:
@@ -21,6 +28,7 @@ Lists can contain a single type of data each. Supported data types include:
 - User email addresses
 - IP addresses
 - Device ID numbers
+- AAGUIDs (used by [Access independent MFA](/cloudflare-one/access-controls/access-settings/independent-mfa/#restrict-authenticators-by-aaguid) to restrict the WebAuthn authenticators users can enroll)
 
 <Render file="gateway/lists" product="cloudflare-one" />
 

@@ -1,6 +1,9 @@
 ---
 pcx_content_type: how-to
 title: Jekyll
+description: Deploy a Jekyll site to Cloudflare Pages.
+products:
+  - pages
 ---
 
 import { PagesBuildPreset, Render } from "~/components";
@@ -65,11 +68,7 @@ If you are migrating an existing Jekyll project to Pages, confirm that your `Gem
 
 ## Deploy with Cloudflare Pages
 
-<Render
-	file="framework-guides/learn-more"
-	product="pages"
-	params={{ name: "Jekyll" }}
-/>
+<Render file="deploy-to-pages-steps-no-preset" product="pages" />
 
 <PagesBuildPreset framework="jekyll" />
 

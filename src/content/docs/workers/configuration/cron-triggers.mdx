@@ -3,6 +3,8 @@ pcx_content_type: concept
 title: Cron Triggers
 head: []
 description: Enable your Worker to be executed on a schedule.
+products:
+  - workers
 ---
 
 import {
@@ -21,7 +23,7 @@ Cron Triggers are ideal for running periodic jobs, such as for maintenance or ca
 
 :::note
 
-Cron Triggers can also be combined with [Workflows](/workflows/) to trigger multi-step, long-running tasks. You can [bind to a Workflow](/workflows/build/workers-api/) directly from your Cron Trigger to execute a Workflow on a schedule.
+Cron Triggers are also available directly in [Workflows](/workflows/) via `schedules` on the Workflow binding instead. Refer to [Trigger Workflows](/workflows/build/trigger-workflows/) for details, and use a Wrangler release that supports Workflow schedules.
 
 :::
 
@@ -61,11 +63,12 @@ export default {
 </TabItem> <TabItem label="Python" icon="seti:python">
 
 ```python
-from workers import WorkerEntrypoint, Response
+from workers import WorkerEntrypoint
 
 class Default(WorkerEntrypoint):
     async def scheduled(self, controller, env, ctx):
-  			print("cron processed")
+        # All four parameters (self, controller, env, ctx) are required
+        print("cron processed")
 ```
 
 </TabItem></Tabs>
@@ -93,13 +96,20 @@ Refer to the example below for a Cron Triggers configuration:
 
 <WranglerConfig>
 
-```toml
-[triggers]
-# Schedule cron triggers:
-# - At every 3rd minute
-# - At 15:00 (UTC) on first day of the month
-# - At 23:59 (UTC) on the last weekday of the month
-crons = [ "*/3 * * * *", "0 15 1 * *", "59 23 LW * *" ]
+```jsonc
+{
+	"triggers": {
+		// Schedule cron triggers:
+		// - At every 3rd minute
+		// - At 15:00 (UTC) on first day of the month
+		// - At 23:59 (UTC) on the last weekday of the month
+		"crons": [
+			"*/3 * * * *",
+			"0 15 1 * *",
+			"59 23 LW * *"
+		]
+	}
+}
 ```
 
 </WranglerConfig>
@@ -108,9 +118,18 @@ You also can set a different Cron Trigger for each [environment](/workers/wrangl
 
 <WranglerConfig>
 
-```toml
-[env.dev.triggers]
-crons = ["0 * * * *"]
+```jsonc
+{
+	"env": {
+		"dev": {
+			"triggers": {
+				"crons": [
+					"0 * * * *"
+				]
+			}
+		}
+	}
+}
 ```
 
 </WranglerConfig>
@@ -174,22 +193,39 @@ Some common time intervals that may be useful for setting up your Cron Trigger:
 
 ## Test Cron Triggers locally
 
-Test Cron Triggers using Wrangler with [`wrangler dev`](/workers/wrangler/commands/#dev), or using the [Cloudflare Vite plugin](https://developers.cloudflare.com/workers/vite-plugin/). This will expose a `/cdn-cgi/handler/scheduled` route which can be used to test using a HTTP request.
+Test Cron Triggers using Wrangler with [`wrangler dev`](/workers/wrangler/commands/general/#dev), or using the [Cloudflare Vite plugin](https://developers.cloudflare.com/workers/vite-plugin/). This exposes a `/cdn-cgi/local/scheduled` route, which can be used to test using an HTTP request. If you are using the Cloudflare Vite Plugin, ensure that you use the correct vite port for the following commands (Vite defaults to 5173).
 
 ```sh
-curl "http://localhost:8787/cdn-cgi/handler/scheduled"
+curl "http://localhost:8787/cdn-cgi/local/scheduled"
 ```
+
+By default, the endpoint returns the scheduled handler outcome as text. To return the
+structured scheduled handler result as JSON, pass `?format=json`.
+
+```sh
+curl "http://localhost:8787/cdn-cgi/local/scheduled?format=json"
+```
+
+```json
+{
+  "outcome": "ok",
+  "noRetry": false
+}
+```
+
+The `noRetry` field is `true` when the scheduled handler calls
+`controller.noRetry()`.
 
 To simulate different cron patterns, a `cron` query parameter can be passed in.
 
 ```sh
-curl "http://localhost:8787/cdn-cgi/handler/scheduled?cron=*+*+*+*+*"
+curl "http://localhost:8787/cdn-cgi/local/scheduled?cron=*+*+*+*+*"
 ```
 
 Optionally, you can also pass a `time` query parameter to override `controller.scheduledTime` in your scheduled event listener.
 
 ```sh
-curl "http://localhost:8787/cdn-cgi/handler/scheduled?cron=*+*+*+*+*&time=1745856238"
+curl "http://localhost:8787/cdn-cgi/local/scheduled?cron=*+*+*+*+*&time=1745856238000"
 ```
 
 ## View past events
@@ -238,10 +274,13 @@ When deploying a Worker with Wrangler any previous Cron Triggers are replaced wi
 
 <WranglerConfig>
 
-```toml
-[triggers]
-# Remove all cron triggers:
-crons = [ ]
+```jsonc
+{
+	"triggers": {
+		// Remove all cron triggers:
+		"crons": []
+	}
+}
 ```
 
 </WranglerConfig>

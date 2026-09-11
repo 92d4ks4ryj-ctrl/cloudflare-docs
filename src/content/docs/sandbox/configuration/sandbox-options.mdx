@@ -1,13 +1,22 @@
 ---
 title: Sandbox options
+description: Configure Sandbox SDK behavior with sleep timeouts, resource limits, and container settings.
 pcx_content_type: configuration
 sidebar:
   order: 4
+products:
+  - sandbox
 ---
 
 import { TypeScriptExample, WranglerConfig } from "~/components";
 
 Configure sandbox behavior by passing options when creating a sandbox instance with `getSandbox()`.
+
+:::note[Coming soon: Sandbox SDK 1.0]
+This page documents options on today's stable `@cloudflare/sandbox` package.
+
+In the **1.0 preview** (`@next`), `enableDefaultSession` and transport selection are removed. `sleepAfter`, `keepAlive`, `containerTimeouts`, and `normalizeId` still apply. Refer to [Sandbox lifecycle](/sandbox/1-0-preview/lifecycle/) and [Migrate](/sandbox/1-0-preview/migrate/).
+:::
 
 ## Available options
 
@@ -17,12 +26,47 @@ import { getSandbox } from '@cloudflare/sandbox';
 const sandbox = getSandbox(binding, sandboxId, options?: SandboxOptions);
 ```
 
+### enableDefaultSession
+
+**Type**: `boolean`
+**Default**: `true`
+
+Controls what happens when you call sandbox methods without an explicit `sessionId`. When `true`, implicit operations use the sandbox's default session and preserve shell state between calls. When `false`, implicit operations run in isolation and do not inherit shell state from prior calls unless you explicitly target a session.
+
+Use `enableDefaultSession: true` for interactive or stateful workflows where commands should share working directory and exported variables. Use `enableDefaultSession: false` for stateless request handling where one call should not affect the next one. It is recommended to set this to `false` — default session support will be removed in a future version of the Sandbox SDK, and using `createSession()` explicitly is the preferred pattern going forward.
+
+<TypeScriptExample>
+```ts
+// Default behavior: implicit operations use the default session
+const statefulSandbox = getSandbox(env.Sandbox, 'user-123');
+
+await statefulSandbox.exec('cd /workspace/app');
+const statefulResult = await statefulSandbox.exec('pwd');
+// statefulResult.stdout: "/workspace/app"
+// The second exec inherited the working directory from the first.
+
+// Sessionless behavior: implicit operations do not share shell state
+const statelessSandbox = getSandbox(env.Sandbox, 'api-worker', {
+  enableDefaultSession: false
+});
+
+await statelessSandbox.exec('cd /workspace/app');
+const statelessResult = await statelessSandbox.exec('pwd');
+// statelessResult.stdout: "/workspace"
+// The second exec did not inherit shell state from the first.
+```
+</TypeScriptExample>
+
 ### keepAlive
 
 **Type**: `boolean`
 **Default**: `false`
 
-Keep the container alive indefinitely by preventing automatic shutdown. When `true`, the container will never auto-timeout and must be explicitly destroyed using `destroy()`.
+Keep the container alive indefinitely by preventing automatic shutdown. When `true`, the container automatically sends heartbeat pings every 30 seconds to prevent eviction and will never auto-timeout.
+
+**How it works**: The sandbox automatically schedules lightweight ping requests to the container every 30 seconds. This prevents the container from being evicted due to inactivity while minimizing resource overhead. You can also enable/disable keepAlive dynamically using [`setKeepAlive()`](/sandbox/api/lifecycle/#setkeepalive).
+
+The `keepAlive` flag persists across Durable Object hibernation and wakeup cycles. Once enabled, you do not need to re-set it after the sandbox wakes from hibernation.
 
 <TypeScriptExample>
 ```ts
@@ -44,7 +88,7 @@ try {
 </TypeScriptExample>
 
 :::caution[Resource management with keepAlive]
-When `keepAlive: true` is set, containers will not automatically timeout. They must be explicitly destroyed using `destroy()` to prevent containers running indefinitely and counting toward your account limits.
+When `keepAlive: true` is set, containers automatically send heartbeat pings to prevent eviction and will not automatically timeout. They must be explicitly destroyed using `destroy()` or disabled with `setKeepAlive(false)` to prevent containers running indefinitely and counting toward your account limits.
 :::
 
 ### sleepAfter
@@ -53,6 +97,10 @@ When `keepAlive: true` is set, containers will not automatically timeout. They m
 **Default**: `"10m"` (10 minutes)
 
 Duration of inactivity before the sandbox automatically sleeps. Accepts duration strings (`"30s"`, `"5m"`, `"1h"`) or numbers (seconds).
+
+:::note[Bug fix in v0.2.17]
+Prior to v0.2.17, the `sleepAfter` option passed to `getSandbox()` was ignored due to a timing issue. The option is now properly applied when creating sandbox instances.
+:::
 
 <TypeScriptExample>
 ```ts
@@ -119,10 +167,13 @@ Control SDK logging for debugging and monitoring. Set these in your Worker's `wr
 - `SANDBOX_LOG_FORMAT` - Output format: `json`, `pretty`. **Default**: `json`
 
 <WranglerConfig>
-```toml
-[vars]
-SANDBOX_LOG_LEVEL = "debug"
-SANDBOX_LOG_FORMAT = "pretty"
+```jsonc
+{
+	"vars": {
+		"SANDBOX_LOG_LEVEL": "debug",
+		"SANDBOX_LOG_FORMAT": "pretty"
+	}
+}
 ```
 </WranglerConfig>
 
@@ -196,12 +247,12 @@ Use `keepAlive: true` for:
 - **Monitoring tasks** - Processes that periodically check external services
 - **Interactive sessions** - User-driven workflows where the container should remain available
 
-With `keepAlive`, containers never sleep automatically - use for scenarios where you control the lifecycle explicitly.
+With `keepAlive`, containers send automatic heartbeat pings every 30 seconds to prevent eviction and never sleep automatically. Use for scenarios where you control the lifecycle explicitly.
 
 ## Related resources
 
 - [Expose services guide](/sandbox/guides/expose-services/) - Using `normalizeId` with preview URLs
 - [Preview URLs concept](/sandbox/concepts/preview-urls/) - Understanding DNS case-insensitivity
 - [Background processes guide](/sandbox/guides/background-processes/) - Using `keepAlive` with long-running processes
-- [Lifecycle API](/sandbox/api/lifecycle/) - Create and manage sandboxes
+- [Lifecycle API](/sandbox/api/lifecycle/) - Create and manage sandboxes with `setKeepAlive()`
 - [Sandboxes concept](/sandbox/concepts/sandboxes/) - Understanding sandbox lifecycle

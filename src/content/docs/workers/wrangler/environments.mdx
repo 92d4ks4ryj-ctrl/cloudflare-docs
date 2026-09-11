@@ -3,6 +3,8 @@ pcx_content_type: concept
 title: Environments
 head: []
 description: Use environments to create different configurations for the same Worker application.
+products:
+  - workers
 ---
 
 import { WranglerConfig, Render, Steps } from "~/components";
@@ -36,12 +38,17 @@ Review the following environments flow:
 
     <WranglerConfig>
 
-    ```toml
-    name = "your-worker"
-    route = "example.com"
-
-    [env.dev]
-    route = "dev.example.com"
+    ```jsonc
+    {
+    	"$schema": "./node_modules/wrangler/config-schema.json",
+    	"name": "your-worker",
+    	"route": "example.com",
+    	"env": {
+    		"dev": {
+    			"route": "dev.example.com",
+    		},
+    	},
+    }
     ```
 
     </WranglerConfig>
@@ -64,22 +71,33 @@ Review the following example Wrangler file:
 
 <WranglerConfig>
 
-```toml
-name = "my-worker"
-
-vars = { API_HOST = "example.com" }
-
-kv_namespaces = [
-  { binding = "<BINDING_NAME>", id = "<KV_NAMESPACE_ID_DEV>" }
-]
-
-[env.production]
-
-vars = { API_HOST = "production.example.com" }
-
-kv_namespaces = [
-  { binding = "<BINDING_NAME>", id = "<KV_NAMESPACE_ID_PRODUCTION>" }
-]
+```jsonc
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "my-worker",
+	"vars": {
+		"API_HOST": "example.com",
+	},
+	"kv_namespaces": [
+		{
+			"binding": "<BINDING_NAME>",
+			"id": "<KV_NAMESPACE_ID_DEV>",
+		},
+	],
+	"env": {
+		"production": {
+			"vars": {
+				"API_HOST": "production.example.com",
+			},
+			"kv_namespaces": [
+				{
+					"binding": "<BINDING_NAME>",
+					"id": "<KV_NAMESPACE_ID_PRODUCTION>",
+				},
+			],
+		},
+	},
+}
 ```
 
 </WranglerConfig>
@@ -91,32 +109,52 @@ In the example below, we have two Workers, both with a `staging` environment. `w
 
 <WranglerConfig>
 
-```toml
-name = "worker-a"
-
-vars = { FOO = "<top-level-var>" }
-[env.staging.vars]
-FOO = "<staging-var>"
+```jsonc
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "worker-a",
+	"vars": {
+		"FOO": "<top-level-var>",
+	},
+	"env": {
+		"staging": {
+			"vars": {
+				"FOO": "<staging-var>",
+			},
+		},
+	},
+}
 ```
 
 </WranglerConfig>
 
 <WranglerConfig>
 
-```toml
-name = "worker-b"
-
-services = { binding = "<BINDING_NAME>", service = "worker-a" }
-
-# Note how `service = "worker-a-staging"`
-env.staging.service ={ binding = "<BINDING_NAME>", service = "worker-a-staging" }
+```jsonc
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "worker-b",
+	"services": {
+		"binding": "<BINDING_NAME>",
+		"service": "worker-a",
+	},
+	// Note how `service = "worker-a-staging"`
+	"env": {
+		"staging": {
+			"service": {
+				"binding": "<BINDING_NAME>",
+				"service": "worker-a-staging",
+			},
+		},
+	},
+}
 ```
 
 </WranglerConfig>
 
 ### Secrets for production
 
-You may assign environment-specific [secrets](/workers/configuration/secrets/) by running the command [`wrangler secret put <KEY> -env`](/workers/wrangler/commands/#secret-put). You can also create `dotenv` type files named `.dev.vars.<environment-name>`.
+You may assign environment-specific [secrets](/workers/configuration/secrets/) by running the command [`wrangler secret put <KEY> -env`](/workers/wrangler/commands/general/#secret-put). You can also create `dotenv` type files named `.dev.vars.<environment-name>`.
 
 Like other environment variables, secrets are [non-inheritable](/workers/wrangler/configuration/#non-inheritable-keys) and must be defined per environment.
 
@@ -134,21 +172,29 @@ The following Wrangler file adds two environments, `[env.staging]` and `[env.pro
 
 <WranglerConfig>
 
-```toml
-name = "my-worker"
-route = "dev.example.com/*"
-vars = { ENVIRONMENT = "dev" }
-
-[env.staging]
-vars = { ENVIRONMENT = "staging" }
-route = "staging.example.com/*"
-
-[env.production]
-vars = { ENVIRONMENT = "production" }
-routes = [
-  "example.com/foo/*",
-  "example.com/bar/*"
-]
+```jsonc
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "my-worker",
+	"route": "dev.example.com/*",
+	"vars": {
+		"ENVIRONMENT": "dev",
+	},
+	"env": {
+		"staging": {
+			"vars": {
+				"ENVIRONMENT": "staging",
+			},
+			"route": "staging.example.com/*",
+		},
+		"production": {
+			"vars": {
+				"ENVIRONMENT": "production",
+			},
+			"routes": ["example.com/foo/*", "example.com/bar/*"],
+		},
+	},
+}
 ```
 
 </WranglerConfig>
@@ -187,16 +233,20 @@ Published my-worker-production
   example.com/*
 ```
 
-Any defined [environment variables](/workers/configuration/environment-variables/) (the [`vars`](/workers/wrangler/configuration/) key) are exposed as global variables to your Worker.
+Any defined [environment variables](/workers/configuration/environment-variables/) (the [`vars`](/workers/wrangler/configuration/) key) are available via the [`env` object](/workers/runtime-apis/bindings/#accessing-bindings) in your Worker.
 
-With this configuration, the `ENVIRONMENT` variable can be used to call specific code depending on the given environment:
+With this configuration, the `env.ENVIRONMENT` variable can be used to call specific code depending on the given environment:
 
 ```js
-if (ENVIRONMENT === "staging") {
-	// staging-specific code
-} else if (ENVIRONMENT === "production") {
-	// production-specific code
-}
+export default {
+	async fetch(request, env, ctx) {
+		if (env.ENVIRONMENT === "staging") {
+			// staging-specific code
+		} else if (env.ENVIRONMENT === "production") {
+			// production-specific code
+		}
+	},
+};
 ```
 
 ### Staging environment with \*.workers.dev
@@ -205,12 +255,17 @@ To deploy your code to your `*.workers.dev` subdomain, include `workers_dev = tr
 
 <WranglerConfig>
 
-```toml
-name = "my-worker"
-route = "example.com/*"
-
-[env.staging]
-workers_dev = true
+```jsonc
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "my-worker",
+	"route": "example.com/*",
+	"env": {
+		"staging": {
+			"workers_dev": true,
+		},
+	},
+}
 ```
 
 </WranglerConfig>

@@ -1,11 +1,14 @@
 ---
 title: Dynamic routing
+description: Route AI Gateway requests based on conditions, quotas, and fallbacks using a visual interface or JSON configuration.
 pcx_content_type: navigation
 order: 1
 sidebar:
-  order: 4
+  order: 5
   group:
     badge: Beta
+products:
+  - ai-gateway
 ---
 
 import { CardGrid, LinkTitleCard, YouTube } from "~/components";
@@ -48,6 +51,7 @@ Ensure your gateway has [authentication](/ai-gateway/configuration/authenticatio
    - Go to **(Select your gateway)** > **Dynamic Routes** > **Add Route**, and name it (for example, `support`).
    - Open **Editor**.
 2. Define conditionals, limits and other settings.
+   - You can use [Custom Metadata](/ai-gateway/observability/custom-metadata/) in your conditionals.
 3. Configure model nodes.
    - Example:
      - Node A: Provider OpenAI, Model `o4-mini-high`
@@ -56,4 +60,10 @@ Ensure your gateway has [authentication](/ai-gateway/configuration/authenticatio
    - Click **Save** to save the state. You can always roll back to earlier versions from **Versions**.
    - Deploy the version to make it live.
 5. Call the route from your code.
-   - Use the [OpenAI compatible](/ai-gateway/usage/chat-completion/) endpoint, and use the route name in place of the model, for example, `dynamic/support`.
+   - Use the [OpenAI compatible](/ai-gateway/usage/chat-completion/) endpoint (`/compat/chat/completions`), and use the route name in place of the model, for example, `dynamic/support`. See [Using a dynamic route](/ai-gateway/features/dynamic-routing/usage/) for examples.
+
+:::note
+
+The OpenAI-compatible endpoint is marked **Deprecated** for standard single-model chat completions, but it remains the required way to call dynamic routes. Dynamic routing is not currently available on the [REST API](/ai-gateway/usage/rest-api/).
+
+:::

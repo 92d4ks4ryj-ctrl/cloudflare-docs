@@ -1,5 +1,8 @@
 ---
 pcx_content_type: how-to
+description: Revoke a client certificate to block its use.
+products:
+  - ssl
 title: Revoke a client certificate
 sidebar:
   order: 8
@@ -8,9 +11,9 @@ sidebar:
 
 import { DashButton } from "~/components";
 
-You can revoke a client certificate you previously generated with the default [Cloudflare Managed CA](/ssl/client-certificates/).
+You can revoke a client certificate you previously generated with the default [Cloudflare-managed CA](/ssl/client-certificates/).
 
-It is not possible to permanently delete client certificates generated with the default Cloudflare Managed CA. Once revoked, these client certificates will still be listed on the [**Client Certificates**](https://dash.cloudflare.com/?to=/:account/:zone/ssl-tls/client-certificates) page, and can be restored at any time.
+It is not possible to permanently delete client certificates generated with the default Cloudflare-managed CA. Once revoked, these client certificates will still be listed on the [**Client Certificates**](https://dash.cloudflare.com/?to=/:account/:zone/ssl-tls/client-certificates) page, and can be restored at any time.
 
 ## Steps
 
@@ -20,6 +23,14 @@ It is not possible to permanently delete client certificates generated with the 
 
 2. Select the certificate you want to revoke.
 3. Select **Revoke** and confirm the operation.
+
+:::note[Effect on quota]
+
+Revoking a certificate immediately removes it from your active certificate count. Only active certificates count toward the per-zone limit. Revoked certificates remain listed but do not consume quota.
+
+If you manage short-lived or device-bound certificates, revoke them as soon as they are no longer needed. Revoking promptly frees the quota slot without waiting for the certificate to expire.
+
+:::
 
 :::caution[Important]
 

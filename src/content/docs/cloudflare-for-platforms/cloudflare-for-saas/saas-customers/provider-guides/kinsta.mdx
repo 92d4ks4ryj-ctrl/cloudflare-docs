@@ -1,6 +1,8 @@
 ---
 pcx_content_type: configuration
 title: Kinsta
+products:
+  - cloudflare-for-saas
 head:
   - tag: title
     content: Kinsta | Provider guides
@@ -11,7 +13,7 @@ import { Render } from "~/components";
 
 <Render
 	file="provider-guide-intro"
-	params={{ providerName: "Kinsta" }}
+	params={{ providerName: "Kinsta", providerAssets: "websites" }}
 	product="cloudflare-for-platforms"
 />
 
@@ -19,7 +21,7 @@ import { Render } from "~/components";
 
 <Render
 	file="provider-guide-benefits"
-	params={{ providerName: "Kinsta" }}
+	params={{ providerName: "Kinsta", providerAssets: "environment" }}
 	product="cloudflare-for-platforms"
 />
 

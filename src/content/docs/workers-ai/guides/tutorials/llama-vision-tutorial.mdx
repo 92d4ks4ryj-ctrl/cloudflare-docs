@@ -6,6 +6,8 @@ title: Llama 3.2 11B Vision Instruct model on Cloudflare Workers AI
 tags:
   - AI
 description: Learn how to use the Llama 3.2 11B Vision Instruct model on Cloudflare Workers AI.
+products:
+  - workers-ai
 ---
 
 import { Details, Render, PackageManagers, WranglerConfig } from "~/components";
@@ -46,10 +48,9 @@ Replace `$CLOUDFLARE_ACCOUNT_ID` and `$CLOUDFLARE_AUTH_TOKEN` with your actual a
 />
 
 <Render
-	file="c3-post-run-steps"
+	file="c3-post-run-steps-hello-world"
 	product="workers"
 	params={{
-		category: "hello-world",
 		type: "Worker only",
 		lang: "JavaScript",
 	}}
@@ -103,10 +104,13 @@ export default {
 1. Open the [Wrangler configuration file](/workers/wrangler/configuration/) and add the following configuration:
 
 <WranglerConfig>
-```toml
-[env]
-[ai]
-binding="AI"
+```jsonc
+{
+	"env": {},
+	"ai": {
+		"binding": "AI"
+	}
+}
 ```
 </WranglerConfig>
 

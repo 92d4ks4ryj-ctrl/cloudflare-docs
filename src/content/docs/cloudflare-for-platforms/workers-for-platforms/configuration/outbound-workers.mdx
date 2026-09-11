@@ -1,6 +1,9 @@
 ---
 pcx_content_type: concept
 title: Outbound Workers
+description: Intercept and control outgoing fetch requests from user Workers using Outbound Workers in Workers for Platforms.
+products:
+  - cloudflare-for-platforms
 ---
 
 import { WranglerConfig } from "~/components";
@@ -35,11 +38,21 @@ Make sure that you have `wrangler@3.3.0` or later [installed](/workers/wrangler/
 
 <WranglerConfig>
 
-```toml
-[[dispatch_namespaces]]
-binding = "dispatcher"
-namespace = "<NAMESPACE_NAME>"
-outbound = {service = "<SERVICE_NAME>", parameters = ["params_object"]}
+```jsonc
+{
+	"dispatch_namespaces": [
+		{
+			"binding": "dispatcher",
+			"namespace": "<NAMESPACE_NAME>",
+			"outbound": {
+				"service": "<SERVICE_NAME>",
+				"parameters": [
+					"params_object"
+				]
+			}
+		}
+	]
+}
 ```
 
 </WranglerConfig>

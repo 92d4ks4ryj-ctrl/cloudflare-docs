@@ -1,8 +1,12 @@
 ---
 title: Vectorize and Workers AI
+description: Generate vector embeddings with Workers AI and store them in a Vectorize index.
 pcx_content_type: get-started
 sidebar:
   order: 3
+products:
+  - vectorize
+  - workers-ai
 ---
 
 import { Render, PackageManagers, WranglerConfig } from "~/components";
@@ -45,10 +49,9 @@ Open your terminal and create a new project named `embeddings-tutorial` by runni
 />
 
 <Render
-	file="c3-post-run-steps"
+	file="c3-post-run-steps-hello-world"
 	product="workers"
 	params={{
-		category: "hello-world",
 		type: "Worker only",
 		lang: "TypeScript",
 	}}
@@ -113,10 +116,15 @@ To bind your index to your Worker, add the following to the end of your Wrangler
 
 <WranglerConfig>
 
-```toml
-[[vectorize]]
-binding = "VECTORIZE" # available in your Worker on env.VECTORIZE
-index_name = "embeddings-index"
+```jsonc
+{
+	"vectorize": [
+		{
+			"binding": "VECTORIZE", // available in your Worker on env.VECTORIZE
+			"index_name": "embeddings-index"
+		}
+	]
+}
 ```
 
 </WranglerConfig>
@@ -129,19 +137,24 @@ Specifically:
 
 ## 4. Set up Workers AI
 
-Before you deploy your embedding example, ensure your Worker uses your model catalog, including the [text embedding model](/workers-ai/models/#text-embeddings) built-in.
+Before you deploy your embedding example, ensure your Worker uses your model catalog, including the [text embedding model](/workers-ai/models/?tasks=Text+Embeddings) built-in.
 
 From within the `embeddings-tutorial` directory, open your Wrangler file in your editor and add the new `[[ai]]` binding to make Workers AI's models available in your Worker:
 
 <WranglerConfig>
 
-```toml
-[[vectorize]]
-binding = "VECTORIZE" # available in your Worker on env.VECTORIZE
-index_name = "embeddings-index"
-
-[ai]
-binding = "AI" # available in your Worker on env.AI
+```jsonc
+{
+	"vectorize": [
+		{
+			"binding": "VECTORIZE",
+			"index_name": "embeddings-index"
+		}
+	],
+	"ai": {
+		"binding": "AI" // available in your Worker on env.AI
+	}
+}
 ```
 
 </WranglerConfig>

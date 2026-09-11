@@ -5,11 +5,17 @@ title: Mount R2 buckets with FUSE
 sidebar:
   order: 8
 description: Mount R2 buckets as filesystems using FUSE in Containers
+reviewed: 2025-11-25
+products:
+  - containers
+  - r2
 ---
 
 import { Details, TypeScriptExample } from "~/components";
 
 FUSE (Filesystem in Userspace) allows you to mount [R2 buckets](/r2/) as filesystems within Containers. Applications can then interact with R2 using standard filesystem operations rather than object storage APIs.
+
+To run a FUSE container locally, refer to [FUSE support during local development](/containers/guides/local-dev/#fuse-support).
 
 Common use cases include:
 

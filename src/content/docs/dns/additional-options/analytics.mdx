@@ -1,12 +1,18 @@
 ---
 pcx_content_type: how-to
+description: View DNS query analytics and configure Logpush for DNS logs.
+products:
+  - dns
 title: Analytics and logs
 sidebar:
   order: 4
+tags:
+  - Analytics
+  - GraphQL
 
 ---
 
-import { FeatureTable, Details, DashButton } from "~/components"
+import { Details, DashButton } from "~/components"
 
 When you use Cloudflare DNS, you can access data about DNS queries through a variety of sources.
 
@@ -22,7 +28,13 @@ When using GraphQL, you also have the option to get data for DNS queries across 
 
 ### Availability and limits
 
-<FeatureTable id="dns.dns_analytics" />
+|  | Free | Pro | Business | Enterprise |
+| - | - | - | - | - |
+| Availability | Yes | Yes | Yes | Yes |
+| Maximum time interval (zone) | 7 days | 31 days | 31 days | 62 days |
+| Maximum time interval (account) | 7 days | 7 days | 7 days | 62 days |
+| Historical data (zone) | 8 days | 31 days | 31 days | 62 days |
+| Historical data (account) | 8 days | 8 days | 8 days | 62 days |
 
 ### View on the dashboard
 
@@ -30,7 +42,7 @@ For a quick summary, view your DNS analytics on the dashboard:
 
 <DashButton url="/?to=/:account/:zone/dns/analytics" />
 
-The DNS analytics dashboard contains [four main panels](#dns-analytics-panels). The filters and time frame that you specify at the top of the page apply to all of them.
+The DNS analytics dashboard contains [four main panels](#panels). The filters and time frame that you specify at the top of the page apply to all of them.
 
 #### Available dimensions
 

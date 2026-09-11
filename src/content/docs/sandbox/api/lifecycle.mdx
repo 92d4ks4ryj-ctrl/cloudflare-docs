@@ -1,13 +1,22 @@
 ---
 title: Lifecycle
+description: Create, configure, and manage Sandbox SDK container instances and their resources.
 pcx_content_type: configuration
 sidebar:
   order: 1
+products:
+  - sandbox
 ---
 
 import { TypeScriptExample } from "~/components";
 
 Create and manage sandbox containers. Get sandbox instances, configure options, and clean up resources.
+
+:::note[Coming soon: Sandbox SDK 1.0]
+This page documents lifecycle helpers on today's stable `@cloudflare/sandbox` package.
+
+In the **1.0 preview** (`@next`), remove transport options on `getSandbox()` and do not rely on `enableDefaultSession`. Keep `sleepAfter`, `keepAlive`, `containerTimeouts`, `normalizeId`, and `destroy` when you need them. Process and terminal handles are container-local after stop or replace. Refer to [Sandbox lifecycle](/sandbox/1-0-preview/lifecycle/) and [Migrate](/sandbox/1-0-preview/migrate/).
+:::
 
 ## Methods
 
@@ -25,10 +34,11 @@ const sandbox = getSandbox(
 
 **Parameters**:
 - `binding` - The Durable Object namespace binding from your Worker environment
-- `sandboxId` - Unique identifier for this sandbox. The same ID always returns the same sandbox instance
+- `sandboxId` - Unique identifier for this sandbox. The same ID always returns the same sandbox instance. In user-facing apps, scope IDs to a single user.
 - `options` (optional) - See [SandboxOptions](/sandbox/configuration/sandbox-options/) for all available options:
+  - `enableDefaultSession` - Use the default session for operations without an explicit `sessionId`. Set to `false` to evaluate each call in isolation (default: `true`)
   - `sleepAfter` - Duration of inactivity before automatic sleep (default: `"10m"`)
-  - `keepAlive` - Prevent automatic sleep entirely (default: `false`)
+  - `keepAlive` - Prevent automatic sleep entirely. Persists across hibernation (default: `false`)
   - `containerTimeouts` - Configure container startup timeouts
   - `normalizeId` - Lowercase sandbox IDs for preview URL compatibility (default: `false`)
 
@@ -36,6 +46,10 @@ const sandbox = getSandbox(
 
 :::note
 The container starts lazily on first operation. Calling `getSandbox()` returns immediately—the container only spins up when you execute a command, write a file, or perform other operations. See [Sandbox lifecycle](/sandbox/concepts/sandboxes/) for details.
+:::
+
+:::note[Implicit execution mode]
+By default, sandbox methods that do not specify a `sessionId` run in the sandbox's default session and preserve shell state between calls. It is recommended to set `enableDefaultSession` to `false` to ensure operations run in isolation. The `createSession()` API exists when sessions are required. Default sessions will be removed in a future version of the Sandbox SDK.
 :::
 
 <TypeScriptExample>
@@ -54,6 +68,42 @@ export default {
 
 :::caution
 When using `keepAlive: true`, you **must** call `destroy()` when finished to prevent containers running indefinitely.
+:::
+
+---
+
+### `setKeepAlive()`
+
+Enable or disable keepAlive mode dynamically after sandbox creation.
+
+```ts
+await sandbox.setKeepAlive(keepAlive: boolean): Promise<void>
+```
+
+**Parameters**:
+- `keepAlive` - `true` to prevent automatic sleep, `false` to allow normal sleep behavior
+
+When enabled, the sandbox automatically sends heartbeat pings every 30 seconds to prevent container eviction. When disabled, the sandbox returns to normal sleep behavior based on the `sleepAfter` configuration.
+
+<TypeScriptExample>
+```
+const sandbox = getSandbox(env.Sandbox, 'user-123');
+
+// Enable keepAlive for a long-running process
+await sandbox.setKeepAlive(true);
+await sandbox.startProcess('python long_running_analysis.py');
+
+// Later, disable keepAlive when done
+await sandbox.setKeepAlive(false);
+```
+</TypeScriptExample>
+
+:::note[Heartbeat mechanism]
+When keepAlive is enabled, the sandbox automatically sends lightweight ping requests to the container every 30 seconds to prevent eviction. This happens transparently without affecting your application code.
+:::
+
+:::caution[Resource management]
+Containers with `keepAlive: true` will not automatically timeout. Always disable keepAlive or call `destroy()` when done to prevent containers running indefinitely.
 :::
 
 ---
@@ -98,4 +148,4 @@ Containers automatically sleep after 10 minutes of inactivity but still count to
 
 - [Sandbox lifecycle concept](/sandbox/concepts/sandboxes/) - Understanding container lifecycle and state
 - [Sandbox options configuration](/sandbox/configuration/sandbox-options/) - Configure `keepAlive` and other options
-- [Sessions API](/sandbox/api/sessions/) - Create isolated execution contexts within a sandbox
+- [Sessions API](/sandbox/api/sessions/) - Create execution contexts within a sandbox

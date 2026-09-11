@@ -1,19 +1,25 @@
 ---
 pcx_content_type: navigation
 title: Meeting Metadata
+description: Access meeting state, type, and connection metadata in the RealtimeKit Core SDK.
 slug: realtime/realtimekit/core/meeting-metadata
 sidebar:
   order: 3
+products:
+  - realtime
 ---
 
-import { Tabs, TabItem } from "~/components";
+import RTKSDKSelector from "~/components/realtimekit/RTKSDKSelector/RTKSDKSelector.astro";
+import RTKCodeSnippet from "~/components/realtimekit/RTKCodeSnippet/RTKCodeSnippet.astro";
 
 All metadata pertaining to a meeting is stored in `meeting.meta`. This includes important information about the meeting state, type, and connections.
 
+<RTKSDKSelector />
 ## Available metadata
 
-<Tabs syncKey="realtimeKitPlatformTabs">
-<TabItem label="Web Components">
+Select a framework based on the platform you are building for.
+
+<RTKCodeSnippet id={["web-angular","web-web-components"]}>
 
 The `meeting.meta` object contains the following properties:
 
@@ -24,8 +30,9 @@ The `meeting.meta` object contains the following properties:
 - **`mediaState`** - Media connection state
 - **`socketState`** - Socket connection state
 
-</TabItem>
-<TabItem label="React">
+ </RTKCodeSnippet>
+
+<RTKCodeSnippet id="web-react">
 
 The `meeting.meta` object contains the following properties:
 
@@ -36,8 +43,9 @@ The `meeting.meta` object contains the following properties:
 - **`mediaState`** - Media connection state
 - **`socketState`** - Socket connection state
 
-</TabItem>
-<TabItem label="Android">
+ </RTKCodeSnippet>
+
+<RTKCodeSnippet id="mobile-android">
 
 The `meeting.meta` object contains the following properties:
 
@@ -52,8 +60,9 @@ The `meeting.meta` object contains the following properties:
 - **`mediaConnectionState`** - The current state of the media connection
 - **`socketConnectionState`** - The current state of the socket connection
 
-</TabItem>
-<TabItem label="iOS">
+ </RTKCodeSnippet>
+
+<RTKCodeSnippet id="mobile-ios">
 
 The `meeting.meta` object contains the following properties:
 
@@ -68,19 +77,8 @@ The `meeting.meta` object contains the following properties:
 - **`mediaConnectionState`** - The current state of the media connection
 - **`socketConnectionState`** - The current state of the socket connection
 
-</TabItem>
-<TabItem label="Flutter">
-
-The `meeting.meta` object contains the following properties:
-
-- **`meetingId`** - The unique identifier of the meeting
-- **`meetingTitle`** - The title of the meeting
-- **`meetingStartedTimestamp`** - The timestamp when the meeting started
-- **`meetingType`** - Indicates the meeting type, which can be one of `groupCall`, `webinar`, or `livestream` from the `RtkMeetingType` enum
-- **`activeTab`** - Information about the currently active tab for the local participant
-
-</TabItem>
-<TabItem label="React Native">
+ </RTKCodeSnippet>
+<RTKCodeSnippet id="mobile-react-native">
 
 The `meeting.meta` object contains the following properties:
 
@@ -91,15 +89,13 @@ The `meeting.meta` object contains the following properties:
 - **`mediaState`** - Media connection state
 - **`socketState`** - Socket connection state
 
-</TabItem>
-</Tabs>
+ </RTKCodeSnippet>
 
 ## Access meeting metadata
 
 To access meeting metadata, use the `meeting.meta` object.
 
-<Tabs syncKey="realtimeKitPlatformTabs">
-<TabItem label="Web Components">
+<RTKCodeSnippet id={["web-angular","web-web-components"]}>
 
 ```javascript
 // Destructure the metadata to get meetingTitle
@@ -112,8 +108,9 @@ if (meeting.self.roomJoined) {
 }
 ```
 
-</TabItem>
-<TabItem label="React">
+ </RTKCodeSnippet>
+
+<RTKCodeSnippet id="web-react">
 
 ```jsx
 import { useRealtimeKitSelector } from "@cloudflare/realtimekit-react";
@@ -137,30 +134,24 @@ function MeetingInfo() {
 }
 ```
 
-</TabItem>
-<TabItem label="Android">
+ </RTKCodeSnippet>
+
+<RTKCodeSnippet id="mobile-android">
 
 ```kotlin
 val meetingTitle = meeting.meta.meetingTitle
 ```
 
-</TabItem>
-<TabItem label="iOS">
+ </RTKCodeSnippet>
+
+<RTKCodeSnippet id="mobile-ios">
 
 ```swift
 let meetingTitle = meeting.meta.meetingTitle
 ```
 
-</TabItem>
-<TabItem label="Flutter">
-
-```dart
-final meetingTitle = meeting.meta.meetingTitle;
-print("The local user has joined ${meetingTitle}.");
-```
-
-</TabItem>
-<TabItem label="React Native">
+ </RTKCodeSnippet>
+<RTKCodeSnippet id="mobile-react-native">
 
 ```tsx
 import { useRealtimeKitSelector } from "@cloudflare/realtimekit-react-native";
@@ -180,8 +171,7 @@ useEffect(() => {
 }, [roomJoined, meetingTitle]);
 ```
 
-</TabItem>
-</Tabs>
+ </RTKCodeSnippet>
 
 ## Connection events
 
@@ -189,8 +179,7 @@ The `meta` object also emits events for indicating changes in the connection sta
 
 ### Media connection updates
 
-<Tabs syncKey="realtimeKitPlatformTabs">
-<TabItem label="Web Components">
+<RTKCodeSnippet id={["web-angular","web-web-components"]}>
 
 Updates to the media connection (WebRTC connection used for the transfer of actual media) are sent via the `mediaConnectionUpdate` event.
 
@@ -208,8 +197,9 @@ The `mediaConnectionUpdate` event provides:
 - **`transport`** - Either `'consuming'` (receiving media) or `'producing'` (sending media)
 - **`state`** - Connection state: `'new'`, `'connecting'`, `'connected'`, `'disconnected'`, `'reconnecting'`, or `'failed'`
 
-</TabItem>
-<TabItem label="React">
+ </RTKCodeSnippet>
+
+<RTKCodeSnippet id="web-react">
 
 Updates to the media connection (WebRTC connection used for the transfer of actual media) are sent via the `mediaConnectionUpdate` event.
 
@@ -246,8 +236,9 @@ The `mediaConnectionUpdate` event provides:
 - **`transport`** - Either `'consuming'` (receiving media) or `'producing'` (sending media)
 - **`state`** - Connection state: `'new'`, `'connecting'`, `'connected'`, `'disconnected'`, `'reconnecting'`, or `'failed'`
 
-</TabItem>
-<TabItem label="Android">
+ </RTKCodeSnippet>
+
+<RTKCodeSnippet id="mobile-android">
 
 You can access the current media connection state directly from the metadata.
 
@@ -255,8 +246,9 @@ You can access the current media connection state directly from the metadata.
 val mediaConnectionState = meeting.meta.mediaConnectionState
 ```
 
-</TabItem>
-<TabItem label="iOS">
+ </RTKCodeSnippet>
+
+<RTKCodeSnippet id="mobile-ios">
 
 You can access the current media connection state directly from the metadata.
 
@@ -264,13 +256,8 @@ You can access the current media connection state directly from the metadata.
 let mediaConnectionState = meeting.meta.mediaConnectionState
 ```
 
-</TabItem>
-<TabItem label="Flutter">
-
-Media connection events are not available in Flutter. Monitor the connection state through the meeting state changes.
-
-</TabItem>
-<TabItem label="React Native">
+ </RTKCodeSnippet>
+<RTKCodeSnippet id="mobile-react-native">
 
 Updates to the media connection (WebRTC connection used for the transfer of actual media) are sent via the `mediaConnectionUpdate` event.
 
@@ -288,13 +275,11 @@ The `mediaConnectionUpdate` event provides:
 - **`transport`** - Either `'consuming'` (receiving media) or `'producing'` (sending media)
 - **`state`** - Connection state: `'new'`, `'connecting'`, `'connected'`, `'disconnected'`, `'reconnecting'`, or `'failed'`
 
-</TabItem>
-</Tabs>
+ </RTKCodeSnippet>
 
 ### Socket connection updates
 
-<Tabs syncKey="realtimeKitPlatformTabs">
-<TabItem label="Web Components">
+<RTKCodeSnippet id={["web-angular","web-web-components"]}>
 
 Updates to the WebSocket connection (used for chat, polls, and other basic signaling) are sent via the `socketConnectionUpdate` event.
 
@@ -323,8 +308,9 @@ The `socketConnectionUpdate` event provides:
 - **`reconnectionAttempt`** - The number of reconnection attempts made (if reconnecting)
 - **`reconnected`** - Boolean indicating if the connection was successfully reestablished
 
-</TabItem>
-<TabItem label="React">
+ </RTKCodeSnippet>
+
+<RTKCodeSnippet id="web-react">
 
 Updates to the WebSocket connection (used for chat, polls, and other basic signaling) are sent via the `socketConnectionUpdate` event.
 
@@ -373,8 +359,9 @@ The `socketConnectionUpdate` event provides:
 - **`reconnectionAttempt`** - The number of reconnection attempts made (if reconnecting)
 - **`reconnected`** - Boolean indicating if the connection was successfully reestablished
 
-</TabItem>
-<TabItem label="Android">
+ </RTKCodeSnippet>
+
+<RTKCodeSnippet id="mobile-android">
 
 You can access the current socket connection state directly from the metadata.
 
@@ -382,8 +369,9 @@ You can access the current socket connection state directly from the metadata.
 val socketConnectionState = meeting.meta.socketConnectionState
 ```
 
-</TabItem>
-<TabItem label="iOS">
+ </RTKCodeSnippet>
+
+<RTKCodeSnippet id="mobile-ios">
 
 You can access the current socket connection state directly from the metadata.
 
@@ -391,13 +379,8 @@ You can access the current socket connection state directly from the metadata.
 let socketConnectionState = meeting.meta.socketConnectionState
 ```
 
-</TabItem>
-<TabItem label="Flutter">
-
-Socket connection events are not available in Flutter. Monitor the connection state through the meeting state changes.
-
-</TabItem>
-<TabItem label="React Native">
+ </RTKCodeSnippet>
+<RTKCodeSnippet id="mobile-react-native">
 
 Updates to the WebSocket connection (used for chat, polls, and other basic signaling) are sent via the `socketConnectionUpdate` event.
 
@@ -426,8 +409,7 @@ The `socketConnectionUpdate` event provides:
 - **`reconnectionAttempt`** - The number of reconnection attempts made (if reconnecting)
 - **`reconnected`** - Boolean indicating if the connection was successfully reestablished
 
-</TabItem>
-</Tabs>
+ </RTKCodeSnippet>
 
 ## Next steps
 

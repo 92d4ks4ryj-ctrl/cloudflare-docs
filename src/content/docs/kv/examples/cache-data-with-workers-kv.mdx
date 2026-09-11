@@ -1,11 +1,13 @@
 ---
-
 summary: Cache data or API responses in Workers KV to improve application performance
 pcx_content_type: example
 title: Cache data with Workers KV
 sidebar:
   order: 5
 description: Example of how to use Workers KV to build a distributed application configuration store.
+reviewed: 2025-03-27
+products:
+  - kv
 ---
 
 import { Render, PackageManagers, Tabs, TabItem } from "~/components";
@@ -41,7 +43,7 @@ interface Env {
 export default {
   async fetch(request, env, ctx): Promise<Response> {
 
-    const EXPIRATION_TTL = 60; // Cache expiration in seconds
+     const EXPIRATION_TTL = 30; // Cache expiration in seconds
     const url = 'https://example.com';
     const cacheKey = "cache-json-example";
 

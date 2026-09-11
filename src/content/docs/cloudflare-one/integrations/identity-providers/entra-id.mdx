@@ -1,6 +1,12 @@
 ---
 pcx_content_type: how-to
+description: Microsoft Entra ID in Zero Trust integrations.
+products:
+  - cloudflare-one
 title: Microsoft Entra ID
+tags:
+  - Microsoft Entra ID
+  - SCIM
 ---
 
 import { Render, Tabs, TabItem, APIRequest } from "~/components";
@@ -90,7 +96,7 @@ More narrow permissions may be used, however this is the set of permissions that
 
 <Tabs syncKey="dashPlusAPI"> <TabItem label="Dashboard">
 
-1. In [Cloudflare One](https://one.dash.cloudflare.com), go to **Integrations** > **Identity providers**.
+1. In the [Cloudflare dashboard](https://dash.cloudflare.com/), go to **Zero Trust** > **Integrations** > **Identity providers**.
 
 2. Under **Your identity providers**, select **Add new identity provider**.
 
@@ -162,7 +168,7 @@ To receive an email claim in the `id_token` from Microsoft Entra, you must:
 
 4.  If you gave your email claim another name than `email`, you must update your configuration in Cloudflare One:
 
-        a. In [Cloudflare One](https://one.dash.cloudflare.com), go to **Integrations** > **Identity providers** > **Azure AD** > **Edit**.
+        a. In the [Cloudflare dashboard](https://dash.cloudflare.com/), go to **Zero Trust** > **Integrations** > **Identity providers** > **Azure AD** > **Edit**.
 
         b. Under **Optional configurations** > **Email claim**, enter the name of the claim representing your organization's email addresses.
 
@@ -174,17 +180,34 @@ If you are concerned that users' emails or UPNs may change, you can pass the use
 
 The Microsoft Entra ID integration allows you to synchronize IdP groups and automatically deprovision users using [SCIM](/cloudflare-one/team-and-resources/users/scim/).
 
+<Render file="access/scim-policy-behavior" product="cloudflare-one" />
+
 ### Prerequisites
 
 - Microsoft Entra ID P1 or P2 license
 
 ### 1. Enable SCIM in Cloudflare One
 
-<Render
-	file="access/enable-scim-on-dashboard"
-	product="cloudflare-one"
-	params={{ idp: "Entra ID", supportgroups: "Support groups" }}
-/>
+1. In the [Cloudflare dashboard](https://dash.cloudflare.com/), go to **Zero Trust** > **Integrations** > **Identity providers**.
+
+2. Find the Entra ID integration and select **Edit**.
+
+3. Turn on **Enable SCIM** and **Support groups**.
+
+4. (Optional) Configure the following settings:
+
+* **Enable user deprovisioning**: [Revoke a user's active session](/cloudflare-one/access-controls/access-settings/session-management/#per-user) when they are removed from the SCIM application in Entra ID. This will invalidate all active Access sessions and prompt for reauthentication for any [Cloudflare One Client session policies](/cloudflare-one/team-and-resources/devices/cloudflare-one-client/configure/client-sessions/).
+* **Remove user seat on deprovision**: [Remove a user's seat](/cloudflare-one/team-and-resources/users/seat-management/) from your Cloudflare One account when they are removed from the SCIM application in Entra ID.
+* **SCIM identity update behavior**: Choose what happens in Cloudflare One when the user's identity updates in Entra ID.
+	- _Automatic identity updates_: Automatically update the [User Registry identity](/cloudflare-one/team-and-resources/users/users/) when Entra ID sends an updated identity or group membership through SCIM. This identity is used for Gateway policies and Cloudflare One Client [device profiles](/cloudflare-one/team-and-resources/devices/cloudflare-one-client/configure/device-profiles/); Access will read the user's updated identity when they reauthenticate.
+	- _Group membership change reauthentication_: [Revoke a user's active session](/cloudflare-one/access-controls/access-settings/session-management/#per-user) when their group membership changes in Entra ID. This will invalidate all active Access sessions and prompt for reauthentication for any [Cloudflare One Client session policies](/cloudflare-one/team-and-resources/devices/cloudflare-one-client/configure/client-sessions/). Access will read the user's updated group membership when they reauthenticate.
+	- _No action_: Update the user's identity the next time they reauthenticate to Access or the Cloudflare One Client.
+
+5. Select **Regenerate Secret**. Copy the **SCIM Endpoint** and **SCIM Secret**. You will need to enter these values into Entra ID.
+
+6. Select **Save**.
+
+The SCIM secret never expires, but you can manually regenerate the secret at any time.
 
 ### 2. Configure SCIM in Entra ID
 
@@ -213,7 +236,7 @@ SCIM requires a separate enterprise application from the one created during [ini
 10. Once the SCIM application is created, [assign users and groups to the application](https://learn.microsoft.com/entra/identity/enterprise-apps/assign-user-or-group-access-portal).
 
 :::note
-Groups in this SCIM application should match the groups in your other [Cloudflare Access enterprise application](/cloudflare-one/integrations/identity-providers/entra-id/#set-up-entra-id-as-an-identity-provider). Because SCIM group membership updates will overwrite any groups in a user's identity, assigning the same groups to each app ensures consistent policy evaluation.
+Groups in this SCIM application should match the groups in your other [Cloudflare Access enterprise application](/cloudflare-one/integrations/identity-providers/entra-id/#set-up-entra-id-as-an-identity-provider). Matching the groups keeps the Gateway identity synchronized with the groups that Entra ID returns when the user authenticates to Access.
 :::
 
 11. Go to **Provisioning** and select **Start provisioning**.
@@ -226,7 +249,7 @@ To check which users and groups were synchronized, select **Provisioning logs**.
 
 <Render file="access/verify-scim-provisioning" product="cloudflare-one" />
 
-To monitor the exchange of identity details between Cloudflare Access and Microsoft Entra ID, go to [Cloudflare One](https://one.dash.cloudflare.com) > **Insights** > **Logs** > **SCIM provisioning logs** and view the [SCIM activity logs](/cloudflare-one/insights/logs/scim-logs/).
+To monitor the exchange of identity details between Cloudflare Access and Microsoft Entra ID, go to the [Cloudflare dashboard](https://dash.cloudflare.com/) > **Zero Trust** > **Insights** > **Logs** > **SCIM provisioning logs** and view the [SCIM activity logs](/cloudflare-one/insights/logs/dashboard-logs/scim-logs/).
 
 ### Provisioning attributes
 
@@ -280,9 +303,9 @@ For SCIM provisioning, [nested groups are not supported](https://learn.microsoft
 
 Since the SCIM request from Microsoft does not include nested group information, neither Cloudflare nor Microsoft can provide a notification that nested groups are not being synchronized.
 
-## Force user interaction during WARP reauthentication
+## Force user interaction during device client reauthentication
 
-You can require users to re-enter their credentials into Entra ID whenever they [re-authenticate their WARP session](/cloudflare-one/team-and-resources/devices/warp/configure-warp/warp-sessions/). To configure this setting:
+You can require users to re-enter their credentials into Entra ID whenever they [re-authenticate their Cloudflare One Client session](/cloudflare-one/team-and-resources/devices/cloudflare-one-client/configure/client-sessions/). To configure this setting:
 
 1.  Make a `GET` request to the [Identity Providers endpoint](/api/resources/zero_trust/subresources/identity_providers/) and copy the response for the Entra ID identity provider.
 

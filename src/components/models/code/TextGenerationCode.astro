@@ -1,7 +1,8 @@
 ---
-import { z } from "astro:schema";
-import { Aside, Code } from "@astrojs/starlight/components";
-import Details from "~/components/Details.astro";
+import { z } from "astro/zod";
+import { Code } from "~/components/ui/code";
+import { Tabs, TabItem } from "~/components/ui/tabs";
+import { Aside } from "~/components/ui/aside";
 
 type Props = z.infer<typeof props>;
 
@@ -122,32 +123,30 @@ curl https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/ai/run
 
 {
 	lora ? (
-		<>
-			<Details header="Worker">
-				<Code code={loraWorker} lang="ts" />
-			</Details>
-
-			<Details header="cURL">
+		<Tabs syncKey="workersAiExamples">
+			<TabItem label="TypeScript">
+				<Code code={loraWorker} lang="ts" title="" />
+			</TabItem>
+			<TabItem label="curl">
 				<Code code={loraCurl} lang="sh" />
-			</Details>
-		</>
+			</TabItem>
+		</Tabs>
 	) : (
 		<>
-			<Details header="Worker - Streaming">
-				<Code code={streamingWorker} lang="ts" />
-			</Details>
-
-			<Details header="Worker">
-				<Code code={worker} lang="ts" />
-			</Details>
-
-			<Details header="Python">
-				<Code code={python} lang="py" />
-			</Details>
-
-			<Details header="curl">
-				<Code code={curl} lang="sh" />
-			</Details>
+			<Tabs syncKey="workersAiExamples">
+				<TabItem label="Worker (Streaming)">
+					<Code code={streamingWorker} lang="ts" />
+				</TabItem>
+				<TabItem label="TypeScript">
+					<Code code={worker} lang="ts" title="" />
+				</TabItem>
+				<TabItem label="Python">
+					<Code code={python} lang="py" title="" />
+				</TabItem>
+				<TabItem label="curl">
+					<Code code={curl} lang="sh" />
+				</TabItem>
+			</Tabs>
 
 			<Aside type="note" title="OpenAI compatible endpoints">
 				Workers AI also supports OpenAI compatible API endpoints for{" "}

@@ -1,6 +1,11 @@
 ---
 title: Get started
 pcx_content_type: get-started
+description: Onboard your IP prefixes to Cloudflare with BYOIP.
+products:
+  - byoip
+tags:
+  - DNS
 sidebar:
   order: 2
 ---
@@ -25,7 +30,7 @@ The process described on this page does not support onboarding IP prefixes for u
     - [LACNIC](https://lacnic.net/)
     - [RIPE](https://www.ripe.net/)
 
-- Also verify that your [Internet Routing Registry (IRR)](/byoip/concepts/irr-entries/) records are  are up to date and contain:
+- Also verify that your [Internet Routing Registry (IRR)](/byoip/concepts/irr-entries/) records are up to date and contain:
 
     - `route` or `route6` objects matching the exact prefixes you want to onboard
     - `origin` matching the correct ASN you want to onboard
@@ -56,7 +61,7 @@ The process described on this page does not support onboarding IP prefixes for u
  }}
 />
 
-```json title="Response" {15-19} ""id": "72823e95d6c64d48a8111fec81179816""
+```json title="Response" {3,15-19}
 
  "result": {
 	 "id": "72823e95d6c64d48a8111fec81179816",
@@ -171,6 +176,11 @@ In IP address management, service bindings map the traffic destined for a given 
 When you onboard your IP prefixes to Cloudflare, there must be one service binding that spans across your entire prefix. Traffic destined for a given IP address will be routed to this service by default. You can also configure [additional service bindings](#optional-additional-bindings) as described in the next step.
 
 1. Make a `GET` request to the [List Services](/api/resources/addressing/subresources/services/methods/list/) endpoint and take note of the `id` associated with the service you want to use.
+
+:::note[CDN egress]
+<Render file="service-bindings-cdn-egress" product="byoip" />
+:::
+
 2. (Optional) If needed, use the [List Prefixes](/api/resources/addressing/subresources/prefixes/methods/list/) endpoint to get or confirm the `id` associated with your prefix.
 3. Make a `POST` request to the [Create service binding](/api/resources/addressing/subresources/prefixes/subresources/service_bindings/methods/create/) endpoint, indicating the entire BYOIP prefix that you are onboarding and the service that should be used for your default binding.
 

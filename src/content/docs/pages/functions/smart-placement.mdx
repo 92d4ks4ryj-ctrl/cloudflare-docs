@@ -1,9 +1,12 @@
 ---
 pcx_content_type: concept
 title: Smart Placement
+description: Automatically run Pages Functions closer to your back-end infrastructure to reduce latency.
 sidebar:
   badge:
     text: Beta
+products:
+  - pages
 ---
 
 import { DashButton } from "~/components";
@@ -22,7 +25,7 @@ Smart Placement on Pages currently has some caveats. While assets are always mea
 
 :::note
 
-To understand how Smart Placement works, refer to [Smart Placement](/workers/configuration/smart-placement/).
+To understand how Smart Placement works, refer to [Smart Placement](/workers/configuration/placement/).
 
 :::
 
@@ -37,6 +40,7 @@ To enable Smart Placement via the dashboard:
 1. In the Cloudflare dashboard, go to the **Workers & Pages** page.
 
    <DashButton url="/?to=/:account/workers-and-pages" />
+
 2. Select your Pages project.
 3. Select **Settings** > **Runtime**.
 4. Under **Placement**, choose **Smart**.

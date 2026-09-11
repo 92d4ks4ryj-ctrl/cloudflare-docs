@@ -1,9 +1,15 @@
 ---
 title: Create a redirect rule using Terraform
 pcx_content_type: configuration
+description: Create Single Redirect rules using the Terraform Cloudflare provider.
+products:
+  - rules
 sidebar:
   order: 4
   label: Create rule using Terraform
+tags:
+  - Terraform
+  - Redirects
 ---
 
 import { Render } from "~/components";
@@ -40,9 +46,8 @@ resource "cloudflare_ruleset" "single_redirects_example" {
 ```
 
 <Render
-	file="terraform-use-ref-field"
+	file="terraform-use-ref-field-with-location"
 	product="rules"
-	params={{ addDocsLocation: true }}
 />
 
 <Render file="terraform-additional-resources" product="rules" />

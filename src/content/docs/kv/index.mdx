@@ -1,8 +1,11 @@
 ---
 title: Cloudflare Workers KV
+description: Workers KV is a global, low-latency, key-value data store for building dynamic and performant APIs and websites.
 pcx_content_type: overview
 sidebar:
   order: 1
+products:
+  - kv
 ---
 
 import {
@@ -159,13 +162,19 @@ See the full Workers KV [REST API and SDK reference](/api/resources/kv/) for det
 
 <Feature header="Wrangler" href="/workers/wrangler/install-and-update/">
 
-The Workers command-line interface, Wrangler, allows you to [create](/workers/wrangler/commands/#init), [test](/workers/wrangler/commands/#dev), and [deploy](/workers/wrangler/commands/#publish) your Workers projects.
+The Workers command-line interface, Wrangler, allows you to [create](/workers/wrangler/commands/general/#init), [test](/workers/wrangler/commands/general/#dev), and [deploy](/workers/wrangler/commands/pages/#pages-deploy) your Workers projects.
 
 </Feature>
 
 <Feature header="Bindings" href="/kv/concepts/kv-bindings/">
 
 Bindings allow your Workers to interact with resources on the Cloudflare developer platform, including [R2](/r2/), [Durable Objects](/durable-objects/), and [D1](/d1/).
+
+</Feature>
+
+<Feature header="Jurisdictions" href="/kv/reference/data-location/">
+
+Restrict a KV namespace to durably store data only within a specific jurisdiction to help meet compliance requirements. Currently in private beta.
 
 </Feature>
 

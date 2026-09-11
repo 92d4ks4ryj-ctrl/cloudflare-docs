@@ -1,14 +1,19 @@
 ---
 pcx_content_type: how-to
+description: Available nameserver configuration options.
+products:
+  - dns
 title: Nameserver options
 sidebar:
   order: 3
-
+head:
+  - tag: title
+    content: Multi-provider DNS and nameserver options
 ---
 
 import { Example, Render } from "~/components"
 
-Refer to the sections below to learn about different nameserver options.
+Refer to the following sections to learn about different Cloudflare nameserver options. The availability of these options depends on your plan. Also, if you acquired your domain from Cloudflare Registrar, your domain already uses and [must remain](/registrar/faq/#can-i-use-my-own-third-party-nameservers) on Cloudflare nameservers.
 
 ## Assignment method
 
@@ -17,10 +22,12 @@ When you add a domain on a [primary (full)](/dns/zone-setups/full-setup/) or [se
 The default assignment method is to use [standard nameservers](/dns/nameservers/#standard-nameservers) and favor consistent nameserver names across all zones within an account. Nonetheless, in case there are conflicts, you may get different nameserver names, even for domains that are within the same account.
 
 :::caution
-To prevent domain hijacking, you can no longer preset Cloudflare nameservers at your registrar before creating the respective zone in Cloudflare. If you preset your nameservers and then add the domain, your domain will be assigned a new pair of nameservers.
+To prevent domain hijacking, you can no longer preset Cloudflare nameservers at your registrar before creating the respective zone in Cloudflare. If you preset your nameservers and then add the domain, your domain will be assigned a new set of nameservers.
 :::
 
-These nameserver assignments cannot be changed. However, depending on your subscription, you may have different options for better nameserver consistency.
+:::caution
+Once a zone is created, its assigned nameservers cannot be changed — not even by Cloudflare Support. If your new zone was assigned a different set from your other zones, refer to [Why does my new zone have different nameservers than my other zones?](/dns/faq/#why-does-my-new-zone-have-different-nameservers-than-my-other-zones) in the DNS FAQ. To keep new zones on the same nameservers going forward, refer to [Nameserver consistency](#nameserver-consistency).
+:::
 
 ### Nameserver consistency
 
@@ -48,9 +55,9 @@ If you have an Enterprise account, you also have the option to [configure your o
 
 ## Multi-provider DNS
 
-Multi-provider DNS is an optional setting for zones using [full setup](/dns/zone-setups/full-setup/) and is an enforced default behavior for zones using [secondary setup](/dns/zone-setups/zone-transfers/cloudflare-as-secondary/).
+Multi-provider DNS is an optional setting for zones using [primary setup (full)](/dns/zone-setups/full-setup/) and is an enforced default behavior for zones using [secondary setup](/dns/zone-setups/zone-transfers/cloudflare-as-secondary/).
 
-When you enable multi-provider DNS on a primary (full setup) zone:
+When you enable multi-provider DNS on a primary zone:
 
 * Cloudflare will no longer ignore `NS` records created on the zone apex, as in the example below.
 
@@ -64,7 +71,7 @@ When you enable multi-provider DNS on a primary (full setup) zone:
 
 This means that responses to DNS queries made to the zone apex and requesting `NS` records will contain both Cloudflare's and your other DNS providers' nameservers.
 
-* Cloudflare will activate a primary (full setup) zone even if its [nameservers listed at the registrar](/dns/nameservers/update-nameservers/) include nameservers from other DNS providers.
+* Cloudflare will activate a primary zone (full setup) even if its [nameservers listed at the registrar](/dns/nameservers/update-nameservers/) include nameservers from other DNS providers.
 
 :::caution
 
